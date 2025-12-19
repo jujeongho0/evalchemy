@@ -17,7 +17,7 @@ from .testing_utils import get_multiple_choice_answer
 
 # Adapted from https://github.com/centerforaisafety/hle/blob/main/hle_eval/run_model_predictions.py
 
-SYSTEM_EXACT_ANSWER = "Your response should be in the following format:\nAnswer: {your chosen multiple choice letter}. Include only the letter, no other text."
+SYSTEM_EXACT_ANSWER = "Your response should be in the following format:\nAnswer: {your chosen answer}." # FIXME
 
 SYSTEM_MC = "Your response should be in the following format:\nAnswer: {your chosen multiple choice letter}. Include only the letter, no other text."
 
@@ -30,7 +30,7 @@ if not HF_HUB_CACHE:
 
 def format_message(question):
     answer_type = question["answer_type"]
-    system_prompt = SYSTEM_EXACT_ANSWER if answer_type == "exact_match" else SYSTEM_MC
+    system_prompt = SYSTEM_EXACT_ANSWER if answer_type == "exactMatch" else SYSTEM_MC # FIXME
     question_text = question["question"]
 
     text_content = dict(type="text", text=question_text)
@@ -108,6 +108,9 @@ class HLESubsetBenchmark(BaseBenchmark):
                 messages = format_message(example)
 
                 templated_messages = self._prepare_messages(messages, model)
+
+                # FIXME: Non-thinking
+                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
 
                 instance = Instance(
                     "generate_until",
@@ -245,7 +248,7 @@ class HLESubsetBenchmark(BaseBenchmark):
         """
         self.logger.info("Loading HLE questions from source, filtering for multiplechoice and no images...")
         dataset = load_dataset("cais/hle", split="test", cache_dir=HF_HUB_CACHE)
-        dataset = dataset.filter(lambda x: x["answer_type"] == "multipleChoice")
+        dataset = dataset.filter(lambda x: x["answer_type"] == "multipleChoice") # FIXME
         dataset = dataset.filter(lambda x: x["image"] == "")
         self.logger.info(f"{len(dataset)} examples remaining after filtering for multiplechoice and no images.")
         return dataset
