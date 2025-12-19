@@ -45,7 +45,7 @@ class AIME25Benchmark(BaseBenchmark):
         self.debug = debug
         self.max_new_tokens = max_tokens
         self.seed = seed
-        self.n_repeat = 10
+        self.n_repeat = 1 # FIXME
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -72,6 +72,9 @@ class AIME25Benchmark(BaseBenchmark):
                 ]
 
                 templated_messages = self._prepare_messages(messages, model)
+
+                # FIXME: Non-thinking
+                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
 
                 instance = Instance(
                     "generate_until",
