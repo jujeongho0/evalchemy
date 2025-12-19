@@ -95,13 +95,16 @@ class GPQADiamondBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
+                # FIXME: Non-thinking
+                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
+
                 instance = Instance(
                     "generate_until",
                     example,
                     (
                         templated_messages,
                         {
-                            "do_sample": True,
+                            "do_sample": False,
                             "temperature": 0.7,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,
