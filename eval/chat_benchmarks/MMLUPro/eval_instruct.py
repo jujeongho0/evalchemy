@@ -145,7 +145,7 @@ class MMLUProBenchmark(BaseBenchmark):
             # wrap prompt for harness
             messages = [{"role": "user", "content": prompt}]
             templated = self._prepare_messages(messages, model)
-            params = {"temperature": 0.7, "max_new_tokens": self.max_new_tokens, "seed": self.seed} # FIXME
+            params = {"temperature": 0.0, "max_new_tokens": self.max_new_tokens, "seed": self.seed}
             inst = Instance("generate_until", ex, (templated, params), idx)
             instances.append(inst)
 
