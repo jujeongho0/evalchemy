@@ -78,7 +78,7 @@ class BaseBenchmark(ABC):
 
         return messages
 
-    def compute(self, model: LM, inputs: List[Instance], do_slice: bool = True) -> List[str]:
+    def compute(self, model: LM, inputs: List[Instance], do_slice: bool = True, **thinking_kwargs) -> List[str]:
         inputs = self._normalize_model_args(model, inputs)
 
         # Add task_name to each instance
@@ -90,8 +90,45 @@ class BaseBenchmark(ABC):
             prompts = list(islice(inputs, model.rank, len(inputs), model.world_size))
         else:
             prompts = inputs
+        
+        # FIXME: Thinking Budget
+        if isinstance(thinking_kwargs["thinking_budget"], int) and thinking_kwargs["thinking_token"] is not None:
+            assert prompts[0].arguments[1]["max_gen_toks"] > thinking_kwargs["thinking_budget"]
 
-        results = model.generate_until(prompts)
+            answer_budget = prompts[0].arguments[1]["max_gen_toks"] - thinking_kwargs["thinking_budget"]
+            for instance in prompts:
+                instance.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
+            
+            results = model.generate_until(prompts)
+
+            for instance, r in zip(prompts, results):
+                if thinking_kwargs["thinking_token"] in r:
+                    instance.arguments[0] = instance.arguments[0] + r
+                    instance.arguments[1]["max_gen_toks"] = answer_budget
+                else:
+                    instance.arguments[0] = instance.arguments[0] + " ".join(r.split()[:-1]) + " ...\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
+                    instance.arguments[1]["max_gen_toks"] = answer_budget
+
+            results = model.generate_until(prompts)
+
+        else:
+            results = model.generate_until(prompts)
+
+        # FIXME: Parsing thinking content
+        if thinking_kwargs["thinking_token"] is not None:
+            results = [r.split(thinking_kwargs["thinking_token"])[-1].strip() for r in results]
+
+        # FIXME: WBL models need post-processing of results
+        # def clean_blocks(text, separators=("\n\n", "\t\t")):
+        #     def strip_one(s):
+        #         return s[1:] if s.startswith(" ") else s
+
+        #     for sep in separators:
+        #         text = sep.join(strip_one(block) for block in text.split(sep))
+
+        #     return text
+        # results = [clean_blocks(r) for r in results]
+
         if model.world_size > 1:
             all_results = [None for _ in range(model.world_size)]
 
