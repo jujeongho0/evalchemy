@@ -43,15 +43,6 @@ python -m eval.eval \
 python -m eval.eval \
     --model hf \
     --model_args pretrained=${MODEL_PATH},attn_implementation=flash_attention_2,parallelize=True,trust_remote_code=True \
-    --tasks KoBALT \
-    --batch_size auto \
-    --max_tokens 8192 \
-    --apply_chat_template \
-    --output_path results \
-
-python -m eval.eval \
-    --model hf \
-    --model_args pretrained=${MODEL_PATH},attn_implementation=flash_attention_2,parallelize=True,trust_remote_code=True \
     --tasks LiveCodeBenchv6_official \
     --batch_size auto \
     --max_tokens 8192 \
@@ -65,5 +56,14 @@ python -m eval.eval \
     --tasks AIME25 \
     --batch_size auto \
     --max_tokens 8192 \
+    --apply_chat_template \
+    --output_path results \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --tasks AALCR \
+    --batch_size auto \
+    --max_tokens 262144 \
     --apply_chat_template \
     --output_path results \
