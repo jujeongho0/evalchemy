@@ -47,13 +47,21 @@ class KMMLUProBenchmark(BaseBenchmark):
         max_tokens: int = 32768,
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
+        # FIXME
+        non_thinking: Optional[bool] = False,
+        thinking_budget: Optional[int] = None,
+        thinking_token: Optional[str] = None,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
         self.dataset_name = "LGAI-EXAONE/KMMLU-Pro"
         self.debug = debug
         self.seed = seed
         self.max_new_tokens = max_tokens
-        self.n_repeat = 1 # FIXME
+        self.n_repeat = 1
+        # FIXME
+        self.non_thinking = non_thinking
+        self.thinking_budget = thinking_budget
+        self.thinking_token = thinking_token
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         examples = self.load_questions()
@@ -93,8 +101,9 @@ class KMMLUProBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking
-                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
+                # FIXME: Non-thinking Mode
+                if self.non_thinking:
+                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
 
                 instance = Instance(
                     "generate_until",
@@ -115,7 +124,7 @@ class KMMLUProBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for KMMLUPro...")
-            outputs = self.compute(model, all_instances)
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
             all_outputs.append(outputs)
 
         # Return None early for non-primary ranks
