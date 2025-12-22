@@ -37,12 +37,6 @@ def calc_stats(values):
     return mean, stderr
 
 
-
-def filter_by_contest_date(example):
-    target_months = ["2025-01", "2025-02", "2025-03", "2025-04"]
-    return example['contest_date'][:7] in target_months
-
-
 class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
     """
     LiveCodeBench v6 Benchmark for evaluating the math reasoning of LLMs.
@@ -57,6 +51,10 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         max_tokens: int = 32768,
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
+        # FIXME
+        non_thinking: Optional[bool] = False,
+        thinking_budget: Optional[int] = None,
+        thinking_token: Optional[str] = None,
     ):
         """
         Initialize LiveCodeBenchV6 benchmark.
@@ -72,6 +70,10 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         self.max_new_tokens = max_tokens
         self.seed = seed
         self.n_repeat = 1 # FIXME
+        # FIXME
+        self.non_thinking = non_thinking
+        self.thinking_budget = thinking_budget
+        self.thinking_token = thinking_token
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -109,8 +111,9 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking
-                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
+                # FIXME: Non-thinking Mode
+                if self.non_thinking:
+                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
 
                 instance = Instance(
                     "generate_until",
@@ -131,7 +134,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for LiveCodeBenchV6...")
-            outputs = self.compute(model, all_instances)
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
             all_outputs.append(outputs)
 
         # Return None early for non-primary ranks
@@ -356,8 +359,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         """Load LiveCodeBenchV6 questions from source."""
         self.logger.info("Loading LiveCodeBenchV6 questions from source and converting to dataset...")
         cpu_count = os.cpu_count()
-        lcb_codegen = load_dataset("livecodebench/code_generation_lite", version_tag="release_v6", cache_dir="./")['test']
-        ds = lcb_codegen.filter(filter_by_contest_date)
+        ds = load_dataset("livecodebench/code_generation_lite", version_tag="v6", cache_dir="./")['test']
         processed_shards = []
         num_shards = 4
         for i in range(num_shards):
