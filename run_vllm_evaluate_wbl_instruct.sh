@@ -65,6 +65,6 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
     --tasks AALCR \
     --batch_size auto \
-    --max_tokens 262144 \
+    --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
