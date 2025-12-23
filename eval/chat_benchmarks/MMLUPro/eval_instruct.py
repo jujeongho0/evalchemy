@@ -156,7 +156,7 @@ class MMLUProBenchmark(BaseBenchmark):
             
             # FIXME: Non-thinking Mode
             if self.non_thinking:
-                templated_messages = templated_messages + "<think>\n\n</think>\n\n"
+                templated = templated + "<think>\n\n</think>\n\n"
 
             params = {"temperature": 0.0, "max_new_tokens": self.max_new_tokens, "seed": self.seed}
             inst = Instance("generate_until", ex, (templated, params), idx)
