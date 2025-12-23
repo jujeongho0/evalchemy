@@ -47,7 +47,6 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 8192 \
     --apply_chat_template \
-    --trust_remote_code \
     --output_path results \
 
 python -m eval.eval \
