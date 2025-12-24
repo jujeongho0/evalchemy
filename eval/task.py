@@ -118,16 +118,10 @@ class BaseBenchmark(ABC):
         if thinking_kwargs["thinking_token"] is not None:
             results = [r.split(thinking_kwargs["thinking_token"])[-1].strip() for r in results]
 
-        # FIXME: WBL models need post-processing of results
-        # def clean_blocks(text, separators=("\n\n", "\t\t")):
-        #     def strip_one(s):
-        #         return s[1:] if s.startswith(" ") else s
-
-        #     for sep in separators:
-        #         text = sep.join(strip_one(block) for block in text.split(sep))
-
-        #     return text
-        # results = [clean_blocks(r) for r in results]
+        # TODO: WBL models need post-processing of results
+        def clean_blocks(text):
+            return text
+        results = [clean_blocks(r) for r in results]
 
         if model.world_size > 1:
             all_results = [None for _ in range(model.world_size)]
