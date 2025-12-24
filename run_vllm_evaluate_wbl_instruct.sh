@@ -13,6 +13,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model vllm \
@@ -22,15 +24,19 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
-    --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
-    --tasks HLE \
-    --batch_size auto \
-    --max_tokens 8192 \
-    --apply_chat_template \
-    --output_path results \
+   --model vllm \
+   --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+   --tasks HLE \
+   --batch_size auto \
+   --max_tokens 8192 \
+   --apply_chat_template \
+   --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model vllm \
@@ -40,6 +46,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model vllm \
@@ -49,6 +57,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model vllm \
@@ -58,12 +68,16 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
     --tasks AALCR \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 262144 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
