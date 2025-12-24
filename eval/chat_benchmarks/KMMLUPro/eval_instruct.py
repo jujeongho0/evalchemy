@@ -13,7 +13,7 @@ from eval.task import BaseBenchmark
 from .testing_utils import get_multiple_choice_answer
 
 PROMPT = """다음 문제에 대해 정답을 고르세요. 당신의 최종 정답은 ABCD 중 하나이고, "정답:" 뒤에 와야 합니다. 정답을 고르기 전에 차근차근 생각하고 추론하세요.
- 
+
 {problem}
 
 A) {A}
@@ -22,7 +22,7 @@ C) {C}
 D) {D}"""
 
 PROMPT_FIVE = """다음 문제에 대해 정답을 고르세요. 당신의 최종 정답은 ABCDE 중 하나이고, "정답:" 뒤에 와야 합니다. 정답을 고르기 전에 차근차근 생각하고 추론하세요.
- 
+
 {problem}
 
 A) {A}
@@ -48,9 +48,8 @@ class KMMLUProBenchmark(BaseBenchmark):
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
         # FIXME
-        non_thinking: Optional[bool] = False,
         thinking_budget: Optional[int] = None,
-        thinking_token: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
         self.dataset_name = "LGAI-EXAONE/KMMLU-Pro"
@@ -59,9 +58,8 @@ class KMMLUProBenchmark(BaseBenchmark):
         self.max_new_tokens = max_tokens
         self.n_repeat = 1
         # FIXME
-        self.non_thinking = non_thinking
         self.thinking_budget = thinking_budget
-        self.thinking_token = thinking_token
+        self.parse_think = parse_think
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         examples = self.load_questions()
@@ -101,10 +99,6 @@ class KMMLUProBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking Mode
-                if self.non_thinking:
-                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
-
                 instance = Instance(
                     "generate_until",
                     example,
@@ -124,7 +118,7 @@ class KMMLUProBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for KMMLUPro...")
-            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
 
         # Return None early for non-primary ranks
