@@ -39,9 +39,8 @@ class GPQADiamondBenchmark(BaseBenchmark):
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
         # FIXME
-        non_thinking: Optional[bool] = False,
         thinking_budget: Optional[int] = None,
-        thinking_token: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         """
         Initialize GPQADiamond benchmark.
@@ -58,9 +57,8 @@ class GPQADiamondBenchmark(BaseBenchmark):
         self.max_new_tokens = max_tokens
         self.n_repeat = 1 # FIXME
         # FIXME
-        self.non_thinking = non_thinking
         self.thinking_budget = thinking_budget
-        self.thinking_token = thinking_token
+        self.parse_think = parse_think
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -103,10 +101,6 @@ class GPQADiamondBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking Mode
-                if self.non_thinking:
-                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
-
                 instance = Instance(
                     "generate_until",
                     example,
@@ -126,7 +120,7 @@ class GPQADiamondBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for GPQADiamond...")
-            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
 
         # Return None early for non-primary ranks
@@ -197,15 +191,12 @@ class GPQADiamondBenchmark(BaseBenchmark):
             data["Incorrect Answer 2"],
             data["Incorrect Answer 3"],
         ]
-        rnd = random.Random(42)
-        rnd.shuffle(answers)
+        random.shuffle(answers)
 
         options = ["A", "B", "C", "D"]
         options_to_answers = {letter: answer for letter, answer in zip(options, answers)}
 
         multiple_choice_string = ", ".join(f"{letter}) {options_to_answers[letter]}" for letter in options)
-        correct_answer_letter = next(
-            letter for letter, answer in options_to_answers.items() if answer == data["Correct Answer"]
-        )
+        correct_answer_letter = next(letter for letter, answer in options_to_answers.items() if answer == data["Correct Answer"])
 
         return multiple_choice_string, correct_answer_letter
