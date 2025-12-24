@@ -92,31 +92,53 @@ class BaseBenchmark(ABC):
             prompts = inputs
         
         # FIXME: Thinking Budget
-        if isinstance(thinking_kwargs["thinking_budget"], int) and thinking_kwargs["thinking_token"] is not None:
-            assert prompts[0].arguments[1]["max_gen_toks"] > thinking_kwargs["thinking_budget"]
+        if isinstance(thinking_kwargs["thinking_budget"], int):
+            for prompt in prompts:
+                prompt.arguments[1]["include_stop_str_in_output"] = True
 
-            answer_budget = prompts[0].arguments[1]["max_gen_toks"] - thinking_kwargs["thinking_budget"]
+            max_gen_toks = prompts[0].arguments[1]["max_gen_toks"]
+            assert max_gen_toks > thinking_kwargs["thinking_budget"]
+
             for instance in prompts:
                 instance.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
             
-            results = model.generate_until(prompts)
+            first_results = model.generate_until(prompts)
 
-            for instance, r in zip(prompts, results):
-                if thinking_kwargs["thinking_token"] in r:
-                    instance.arguments[0] = instance.arguments[0] + r
-                    instance.arguments[1]["max_gen_toks"] = answer_budget
+            results, temp_results, second_prompts = [], [], []
+            for instance, fr in zip(prompts, first_results):
+                if "<|END|>" in fr:
+                    results.append(fr.replace("<|END|>", ""))
+
                 else:
-                    instance.arguments[0] = instance.arguments[0] + " ".join(r.split()[:-1]) + " ...\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
-                    instance.arguments[1]["max_gen_toks"] = answer_budget
+                    results.append(None)
 
-            results = model.generate_until(prompts)
+                    if "</think>" in fr:
+                        temp_results.append(fr)
+                        instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
+                        instance.arguments[1]["max_gen_toks"] = max_gen_toks - thinking_kwargs["thinking_budget"]
+                        second_prompts.append(instance)
+
+                    else:
+                        early_stopping_text = "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
+                        temp_results.append(fr + early_stopping_text)
+                        instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
+                        instance.arguments[1]["max_gen_toks"] = max_gen_toks - thinking_kwargs["thinking_budget"] - 30
+                        second_prompts.append(instance)
+
+            second_results = model.generate_until(second_prompts)
+
+            idx = 0
+            for i, r in enumerate(results):
+                if r is None:
+                    results[i] = temp_results[idx] + second_results[idx].replace("<|END|>", "")
+                    idx += 1
 
         else:
             results = model.generate_until(prompts)
 
         # FIXME: Parsing thinking content
-        if thinking_kwargs["thinking_token"] is not None:
-            results = [r.split(thinking_kwargs["thinking_token"])[-1].strip() for r in results]
+        if thinking_kwargs["parse_think"]:
+            results = [r.split("</think>")[-1].strip() for r in results]
 
         # TODO: WBL models need post-processing of results
         def clean_blocks(text):
