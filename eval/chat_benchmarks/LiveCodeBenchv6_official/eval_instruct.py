@@ -52,9 +52,8 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
         # FIXME
-        non_thinking: Optional[bool] = False,
         thinking_budget: Optional[int] = None,
-        thinking_token: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         """
         Initialize LiveCodeBenchV6 benchmark.
@@ -71,9 +70,8 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         self.seed = seed
         self.n_repeat = 1 # FIXME
         # FIXME
-        self.non_thinking = non_thinking
         self.thinking_budget = thinking_budget
-        self.thinking_token = thinking_token
+        self.parse_think = parse_think
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -88,7 +86,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         """
         examples = self.load_questions()
         if self.debug:
-            examples = examples[:10]
+            examples = examples[:2]
 
         all_outputs = []
 
@@ -111,10 +109,6 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking Mode
-                if self.non_thinking:
-                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
-
                 instance = Instance(
                     "generate_until",
                     example,
@@ -134,7 +128,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for LiveCodeBenchV6...")
-            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
 
         # Return None early for non-primary ranks
