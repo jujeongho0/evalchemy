@@ -1,6 +1,6 @@
+import os
 import asyncio
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -11,15 +11,21 @@ from run_judge_results import judge_all_responses
 
 from eval.task import BaseBenchmark
 
-from .testing_utils import get_multiple_choice_answer
 
 ########################################################################
 
 # Adapted from https://github.com/centerforaisafety/hle/blob/main/hle_eval/run_model_predictions.py
 
-SYSTEM_EXACT_ANSWER = "Your response should be in the following format:\nAnswer: {your chosen answer}." # FIXME
+# FIXME
+SYSTEM_EXACT_ANSWER = """Your response should be in the following format:
+Explanation: {{your explanation for your final answer}}
+Exact Answer: {{your succinct, final answer}}
+Confidence: {{your confidence score between 0% and 100% for your answer}}"""
 
-SYSTEM_MC = "Your response should be in the following format:\nAnswer: {your chosen multiple choice letter}. Include only the letter, no other text."
+SYSTEM_MC = """Your response should be in the following format:
+Explanation: {{your explanation for your answer choice}}
+Answer: {{your chosen answer}}
+Confidence: {{your confidence score between 0% and 100% for your answer}}"""
 
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
@@ -66,6 +72,9 @@ class HLESubsetBenchmark(BaseBenchmark):
         max_tokens: int = 32768,
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
+        # FIXME
+        thinking_budget: Optional[int] = None,
+        parse_think: Optional[bool] = False,
     ):
         """
         Initialize HLE benchmark.
@@ -79,7 +88,10 @@ class HLESubsetBenchmark(BaseBenchmark):
         self.debug = debug
         self.max_new_tokens = max_tokens
         self.seed = seed
-        self.n_repeat = 1 # FIXME
+        self.n_repeat = 1
+        # FIXME
+        self.thinking_budget = thinking_budget
+        self.parse_think = parse_think
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -109,9 +121,6 @@ class HLESubsetBenchmark(BaseBenchmark):
 
                 templated_messages = self._prepare_messages(messages, model)
 
-                # FIXME: Non-thinking
-                # templated_messages = templated_messages + "<think>\n\n</think>\n\n"
-
                 instance = Instance(
                     "generate_until",
                     example,
@@ -139,7 +148,7 @@ class HLESubsetBenchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for HLE...")
-            outputs = self.compute(model, all_instances)
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
         # Return None early for non-primary ranks
         if model.rank != 0:
@@ -149,13 +158,14 @@ class HLESubsetBenchmark(BaseBenchmark):
 
         for example, outputs in zip(examples, zip(*all_outputs)):
             example["model_outputs"] = list(outputs)
-            example["model_answers"] = [get_multiple_choice_answer(o) for o in outputs]
             examples_list.append(example)
 
         return {"examples": examples_list}
-
-    def evaluate_responses(self, results: Dict[str, Any]) -> Dict[str, float]:
-        """Evaluate the generated solution completions."""
+    
+    # FIXME
+    def evaluate_responses(
+        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18"
+    ) -> Dict[str, float]:
 
         if results is None:
             return None
@@ -163,10 +173,22 @@ class HLESubsetBenchmark(BaseBenchmark):
         examples = results["examples"]
         num_questions = len(examples)
 
-        # Calculate accuracy for each repetition
+        questions = []
+        for example in examples:
+            questions.append({"id": example["id"], "question": example["question"], "answer": example["answer"]})
+            example["judge_responses"] = []
+
         all_results = []
         for i in range(self.n_repeat):
-            solved = sum([example["answer"] == example["model_answers"][i] for example in examples])
+            predictions = {example["id"]: {"response": example["model_outputs"][i]} for example in examples}
+
+            eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
+
+            solved = 0
+            for j, (unique_id, predictions) in enumerate(eval_results):
+                if unique_id is not None:
+                    solved += predictions["judge_response"]["correct"] == "yes"
+                    examples[j]["judge_responses"].append(predictions["judge_response"])
 
             all_results.append(
                 {
@@ -177,7 +199,6 @@ class HLESubsetBenchmark(BaseBenchmark):
                 }
             )
 
-        # Calculate overall statistics
         solved_avg = np.mean([result["num_solved"] for result in all_results])
         accuracy_avg = np.mean([result["accuracy"] for result in all_results])
         accuracy_std = np.std([result["accuracy"] for result in all_results])
@@ -196,50 +217,6 @@ class HLESubsetBenchmark(BaseBenchmark):
 
         return results
 
-    def evaluate_responses_judge(
-        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18"
-    ) -> Dict[str, float]:
-        """
-        Evaluate the generated solution completions using LM-Judge, as in original HLE.
-        """
-
-        # Handle None result from non-primary ranks
-        if results is None:
-            return None
-
-        examples = results["examples"]
-        num_questions = len(examples)
-
-        self.logger.info(f"Evaluating {num_questions} examples...")
-
-        dataset = self.load_questions()
-        if self.debug:
-            dataset = dataset.select(range(2))
-            self.logger.info(f"Debug mode: using 2 examples")
-
-        dataset = dataset.to_dict()
-        questions = [dict(zip(dataset.keys(), values)) for values in zip(*dataset.values())]
-
-        for example in examples:
-            example["judge_responses"] = []
-
-        for i in range(self.n_repeat):
-            predictions = {example["id"]: {"response": example["model_outputs"][i]} for example in examples}
-
-            eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
-
-            for i, (unique_id, predictions) in enumerate(eval_results):
-                if unique_id is not None:
-                    examples[i]["judge_responses"].append(predictions["judge_response"])
-
-        results.update(
-            {
-                "num_total": num_questions,
-                "num_repeat": self.n_repeat,
-            }
-        )
-
-        return results
 
     def load_questions(self) -> Dataset:
         """
@@ -248,7 +225,7 @@ class HLESubsetBenchmark(BaseBenchmark):
         """
         self.logger.info("Loading HLE questions from source, filtering for multiplechoice and no images...")
         dataset = load_dataset("cais/hle", split="test", cache_dir=HF_HUB_CACHE)
-        dataset = dataset.filter(lambda x: x["answer_type"] == "multipleChoice") # FIXME
+        # dataset = dataset.filter(lambda x: x["answer_type"] == "multipleChoice") # FIXME
         dataset = dataset.filter(lambda x: x["image"] == "")
         self.logger.info(f"{len(dataset)} examples remaining after filtering for multiplechoice and no images.")
         return dataset
