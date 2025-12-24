@@ -12,6 +12,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -21,6 +23,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -30,6 +34,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -39,6 +45,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -48,6 +56,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -57,6 +67,8 @@ python -m eval.eval \
     --max_tokens 8192 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
 
 python -m eval.eval \
     --model hf \
@@ -66,3 +78,5 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
