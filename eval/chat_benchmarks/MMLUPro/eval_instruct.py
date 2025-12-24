@@ -103,9 +103,8 @@ class MMLUProBenchmark(BaseBenchmark):
         system_instruction: Optional[str] = None,
         seed: List[int] = [0, 1234, 1234, 1234],
         # FIXME
-        non_thinking: Optional[bool] = False,
         thinking_budget: Optional[int] = None,
-        thinking_token: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
         self.dataset_name = "TIGER-Lab/MMLU-Pro"
@@ -115,9 +114,8 @@ class MMLUProBenchmark(BaseBenchmark):
         self.debug = debug
         self.seed = seed
         # FIXME
-        self.non_thinking = non_thinking
         self.thinking_budget = thinking_budget
-        self.thinking_token = thinking_token
+        self.parse_think = parse_think
 
         ds = load_dataset(self.dataset_name)
         self.test_examples = preprocess(ds["test"])
@@ -137,7 +135,7 @@ class MMLUProBenchmark(BaseBenchmark):
 
         instances = []
         for idx, ex in enumerate(self.test_examples):
-            if self.debug and idx >= 2:
+            if self.debug and idx >= 200:
                 break
 
             # dynamically choose k so prompt fits
@@ -153,16 +151,12 @@ class MMLUProBenchmark(BaseBenchmark):
             # wrap prompt for harness
             messages = [{"role": "user", "content": prompt}]
             templated = self._prepare_messages(messages, model)
-            
-            # FIXME: Non-thinking Mode
-            if self.non_thinking:
-                templated = templated + "<think>\n\n</think>\n\n"
 
             params = {"temperature": 0.0, "max_new_tokens": self.max_new_tokens, "seed": self.seed}
             inst = Instance("generate_until", ex, (templated, params), idx)
             instances.append(inst)
 
-        outputs = self.compute(model=model, inputs=instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
+        outputs = self.compute(model=model, inputs=instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
         examples = []
         for ex, out in zip(self.test_examples, outputs):
             # unwrap different output types
