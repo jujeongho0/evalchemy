@@ -134,21 +134,14 @@ def setup_custom_parser():
 
     # FIXME
     parser.add_argument(
-        "--non_thinking",
-        action="store_true",
-        default=False,
-    )
-
-    parser.add_argument(
         "--thinking_budget",
         type=int,
         default=None,
     )
 
     parser.add_argument(
-        "--thinking_token",
-        type=str,
-        default=None,
+        "--parse_think",
+        action="store_true",
     )
 
     return parser
@@ -396,9 +389,8 @@ def cli_evaluate(args: Optional[argparse.Namespace] = None) -> None:
         task_list=task_list,
         system_instruction=args.system_instruction,
         # FIXME
-        non_thinking=args.non_thinking,
         thinking_budget=args.thinking_budget,
-        thinking_token=args.thinking_token,
+        parse_think=args.parse_think,
     )
     pretrain_task_manager = PretrainTaskManager(args.verbosity, include_path=args.include_path)
 
