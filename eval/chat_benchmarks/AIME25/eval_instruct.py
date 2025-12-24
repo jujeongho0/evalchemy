@@ -31,9 +31,8 @@ class AIME25Benchmark(BaseBenchmark):
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
         # FIXME
-        non_thinking: Optional[bool] = False,
         thinking_budget: Optional[int] = None,
-        thinking_token: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         """
         Initialize AIME25 benchmark.
@@ -51,9 +50,8 @@ class AIME25Benchmark(BaseBenchmark):
         self.seed = seed
         self.n_repeat = 1 # FIXME
         # FIXME
-        self.non_thinking = non_thinking
         self.thinking_budget = thinking_budget
-        self.thinking_token = thinking_token
+        self.parse_think = parse_think
 
     def generate_responses(self, model: LM) -> Dict[str, Any]:
         """
@@ -80,10 +78,6 @@ class AIME25Benchmark(BaseBenchmark):
                 ]
 
                 templated_messages = self._prepare_messages(messages, model)
-
-                # FIXME: Non-thinking Mode
-                if self.non_thinking:
-                    templated_messages = templated_messages + "<think>\n\n</think>\n\n"
 
                 instance = Instance(
                     "generate_until",
@@ -112,7 +106,7 @@ class AIME25Benchmark(BaseBenchmark):
 
             # Generate model responses
             self.logger.info("Generating responses for AIME25...")
-            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, thinking_token=self.thinking_token) # FIXME
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
         # Return None early for non-primary ranks
         if model.rank != 0:
