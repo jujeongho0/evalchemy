@@ -154,7 +154,7 @@ class AALCRBenchmark(BaseBenchmark):
         dataset = load_dataset("ArtificialAnalysis/AA-LCR", cache_dir=HF_HUB_CACHE)
         dataset = [row for row in dataset["test"]]
         if self.debug:
-            dataset = dataset[:10]
+            dataset = dataset[:2]
 
         questions = []
         for d in dataset:
