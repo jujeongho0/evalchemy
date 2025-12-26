@@ -85,8 +85,6 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
             or None for non-primary ranks
         """
         examples = self.load_questions()
-        if self.debug:
-            examples = examples[:2]
 
         all_outputs = []
 
