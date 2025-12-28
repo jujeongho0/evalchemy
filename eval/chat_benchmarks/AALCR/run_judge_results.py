@@ -1,6 +1,5 @@
 import asyncio
 import copy
-from typing import Literal
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
@@ -12,6 +11,7 @@ client = AsyncOpenAI(
     max_retries=1
 )
 
+# Adopted from https://huggingface.co/datasets/ArtificialAnalysis/AA-LCR
 JUDGE_PROMPT = """Assess whether the following CANDIDATE ANSWER is CORRECT or INCORRECT.
 For the CANDIDATE ANSWER to be correct, it must be consistent with the OFFICIAL ANSWER.
 
