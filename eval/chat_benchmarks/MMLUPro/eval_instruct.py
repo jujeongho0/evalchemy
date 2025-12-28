@@ -1,179 +1,112 @@
-import re
-import random
-import time
 import logging
-from collections import defaultdict
+import os
 from typing import Any, Dict, List, Optional
-import math
-import numpy as np
 
+import lm_eval.models
+import numpy as np
 from datasets import load_dataset
-from transformers import AutoTokenizer
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
+
 from eval.task import BaseBenchmark
 
-
-# --- Extraction helpers from https://github.com/TIGER-AI-Lab/MMLU-Pro/blob/main/evaluate_from_local.py ---
-
-
-def extract_answer(text: str) -> Optional[str]:
-    pattern = r"answer is \(?([A-J])\)?"
-    match = re.search(pattern, text, re.IGNORECASE)
-    if match:
-        return match.group(1)
-    else:
-        return extract_again(text)
-
-
-def extract_again(text: str) -> Optional[str]:
-    match = re.search(r"Answer:\s*([A-J])", text, re.IGNORECASE)
-    if match:
-        return match.group(1)
-    else:
-        return extract_final(text)
-
-
-def extract_final(text: str) -> Optional[str]:
-    pattern = r"\b[A-J]\b(?!.*\b[A-J]\b)"
-    match = re.search(pattern, text, re.DOTALL)
-    return match.group(0) if match else None
-
-
-# --- Prompt construction from Script 1 ---
+from .testing_utils import get_multiple_choice_answer
 
 choices = [chr(ord("A") + i) for i in range(16)]
 
 
-def select_by_category(df: List[Dict[str, Any]], subject: str) -> List[Dict[str, Any]]:
-    return [ex for ex in df if ex["category"] == subject]
-
-
-def format_cot_example(example: Dict[str, Any], including_answer: bool = True) -> str:
-    prompt = "Question:\n" + example["question"] + "\n"
-    prompt += "Options:\n"
-    for i, opt in enumerate(example["options"]):
-        prompt += f"{choices[i]}. {opt}\n"
-    if including_answer:
-        cot = example["cot_content"].replace("A: Let's think step by step.", "Answer: Let's think step by step.")
-        prompt += cot + "\n\n"
-    else:
-        prompt += "Answer: Let's think step by step."
-    return prompt
-
-
-def generate_cot_prompt(val_df: List[Dict[str, Any]], curr: Dict[str, Any], k: int) -> str:
+# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#multiple-choice-questions
+def generate_cot_prompt(curr: Dict[str, Any]) -> str:
     # Load base template
-    with open("./eval/chat_benchmarks/MMLUPro/initial_prompt.txt") as f:
-        base = f.read()
-    subject = curr["category"]
-    support = select_by_category(val_df, subject)[:k]
-    prompt = base.replace("{$}", subject) + "\n"
-    for ex in support:
-        prompt += format_cot_example(ex, including_answer=True)
-    prompt += format_cot_example(curr, including_answer=False)
+    prompt = "Answer the following multiple choice question. The last line of your response should be in the following format: 'Answer: A/B/C/D/E/F/G/H/I/J' (e.g. 'Answer: A')."
+    prompt += "\n\n" + curr["question"] + "\n\n"
+    for i, opt in enumerate(curr["options"]):
+        prompt += f"{choices[i]}) {opt}\n"
+    prompt += "Answer: Let's think step by step."
     return prompt
 
 
-def preprocess(df: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    out = []
-    for ex in df:
-        opts = [o for o in ex["options"] if o != "N/A"]
-        ex["options"] = opts
-        out.append(ex)
-    return out
-
-
-# --- MMLUPro Benchmark with CoT prompting ---
+HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
+if not HF_HUB_CACHE:
+    print(
+        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for KMMLUPro benchmark"
+    )
 
 
 class MMLUProBenchmark(BaseBenchmark):
-    """
-    MMLU-Pro CoT Benchmark: harness-style but with dynamic few-shot CoT prompts
-    and multi-stage regex answer extraction, reporting both overall and per-area accuracy.
-    """
 
     def __init__(
         self,
-        ntrain: int = 5,
-        max_model_length: int = 4096,
-        max_tokens: int = 32768,
         debug: bool = False,
+        seed: List[int] = [0, 1234, 1234, 1234],
+        max_tokens: int = 32768,
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
-        seed: List[int] = [0, 1234, 1234, 1234],
         # FIXME
         thinking_budget: Optional[int] = None,
         parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
         self.dataset_name = "TIGER-Lab/MMLU-Pro"
-        self.ntrain = ntrain
-        self.max_model_length = max_model_length
-        self.max_new_tokens = max_tokens
         self.debug = debug
         self.seed = seed
+        self.max_new_tokens = max_tokens
+        self.n_repeat = 1
         # FIXME
         self.thinking_budget = thinking_budget
         self.parse_think = parse_think
 
-        ds = load_dataset(self.dataset_name)
-        self.test_examples = preprocess(ds["test"])
-        self.val_examples = preprocess(ds["validation"])
-
-        # prepare tokenizer for dynamic prompt length checks
-        # model name will be set later in generate_responses
-        self.tokenizer: Optional[AutoTokenizer] = None
-
     def generate_responses(self, model: LM) -> Dict[str, Any]:
-        # initialize tokenizer on first use
-        if self.tokenizer is None:
-            from transformers import AutoTokenizer
+        examples = self.load_questions()
 
-            model_name = getattr(model, "pretrained", getattr(model, "model_args", {}).get("model"))
-            self.tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct", trust_remote_code=True)
+        if isinstance(model, lm_eval.models.huggingface.HFLM):
+            model_name = model.pretrained
+        elif isinstance(model, lm_eval.models.openai_completions.OpenAIChatCompletion):
+            model_name = str(f"openai/{model.model}")
+        else:
+            model_name = model.model_args["model"]
 
-        instances = []
-        for idx, ex in enumerate(self.test_examples):
-            if self.debug and idx >= 200:
-                break
+        all_outputs = []
 
-            # dynamically choose k so prompt fits
-            k = self.ntrain
-            while k > 0:
-                prompt = generate_cot_prompt(self.val_examples, ex, k)
-                toks = self.tokenizer(prompt, return_tensors="pt")
-                length = toks["input_ids"].shape[1]
-                if length < self.max_model_length - self.max_new_tokens:
-                    break
-                k -= 1
+        for i in range(self.n_repeat):
+            all_instances = []
+            seed = [s + i for s in self.seed]
 
-            # wrap prompt for harness
-            messages = [{"role": "user", "content": prompt}]
-            templated = self._prepare_messages(messages, model)
+            for idx, example in enumerate(examples):
+                prompt = generate_cot_prompt(example)
 
-            params = {"temperature": 0.0, "max_new_tokens": self.max_new_tokens, "seed": self.seed}
-            inst = Instance("generate_until", ex, (templated, params), idx)
-            instances.append(inst)
+                messages = [{"role": "user", "content": prompt}]
+                templated_messages = self._prepare_messages(messages, model)
 
-        outputs = self.compute(model=model, inputs=instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
-        examples = []
-        for ex, out in zip(self.test_examples, outputs):
-            # unwrap different output types
-            if isinstance(out, str):
-                text = out
-            elif hasattr(out, "outputs") and out.outputs:
-                text = out.outputs[0].text
-            elif hasattr(out, "text"):
-                text = out.text
-            else:
-                text = str(out)
+                instance = Instance(
+                    "generate_until",
+                    example,
+                    (
+                        templated_messages,
+                        {
+                            "do_sample": False,
+                            "temperature": 0.7,
+                            "max_new_tokens": self.max_new_tokens,
+                            "seed": seed,
+                        },
+                    ),
+                    idx,
+                )
+                instance.repeat_idx = i
+                all_instances.append(instance)
 
-            pred = extract_answer(text)
-            ex_copy = ex.copy()
-            ex_copy["model_outputs"] = text
-            ex_copy["pred"] = pred
-            examples.append(ex_copy)
+            # Generate model responses
+            self.logger.info("Generating responses for MMLUPro...")
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
+            all_outputs.append(outputs)
+
+        # Return None early for non-primary ranks
+        if model.rank != 0:
+            return None
+
+        for example, outputs in zip(examples, zip(*all_outputs)):
+            example["model_outputs"] = list(outputs)
+            example["model_answers"] = [get_multiple_choice_answer(o) for o in outputs]
 
         return {"examples": examples}
 
@@ -181,37 +114,46 @@ class MMLUProBenchmark(BaseBenchmark):
         if results is None:
             return None
 
-        examples: List[Dict[str, Any]] = results["examples"]
-        area_stats = defaultdict(lambda: {"corr": 0, "total": 0})
-        correct_flags: List[int] = []  # collect 1/0 for each example
+        examples = results["examples"]
+        num_questions = len(examples)
 
-        # accumulate per‑example correctness
-        for ex in examples:
-            cat = ex["category"]
-            correct = int(ex["pred"] == ex["answer"])
-            area_stats[cat]["total"] += 1
-            area_stats[cat]["corr"] += correct
-            correct_flags.append(correct)
+        # Calculate accuracy for each repetition
+        all_results = []
+        for i in range(self.n_repeat):
+            solved = sum([example["answer"] == example["model_answers"][i] for example in examples])
 
-        n = len(correct_flags)
-        flags_arr = np.asarray(correct_flags, dtype=float)
+            all_results.append(
+                {
+                    "repetition": i + 1,
+                    "num_total": num_questions,
+                    "num_solved": solved,
+                    "accuracy": solved / num_questions,
+                }
+            )
 
-        # micro accuracy and its **empirical** standard error
-        overall_accuracy = float(flags_arr.mean())
-        overall_accuracy_stderr = float(flags_arr.std(ddof=1) / math.sqrt(n))
+        # Calculate overall statistics
+        solved_avg = np.mean([result["num_solved"] for result in all_results])
+        accuracy_avg = np.mean([result["accuracy"] for result in all_results])
+        accuracy_std = np.std([result["accuracy"] for result in all_results])
+        accuracy_std_err = np.std([result["accuracy"] for result in all_results]) / np.sqrt(self.n_repeat)
 
-        out: Dict[str, float] = {
-            "accuracy_avg": overall_accuracy,
-            "accuracy_std_err": overall_accuracy_stderr,
-            "total_examples": n,
-        }
+        results.update(
+            {
+                "num_total": num_questions,
+                "solved_avg": solved_avg,
+                "run_stats": all_results,
+                "accuracy_avg": accuracy_avg,
+                "accuracy_std_err": accuracy_std_err,
+                "num_repeat": self.n_repeat,
+            }
+        )
 
-        # per‑category stats (needed for macro‑averages)
-        per_area_acc: List[float] = []
-        for cat, vals in area_stats.items():
-            acc = vals["corr"] / vals["total"]
-            out[f"accuracy_{cat}"] = acc
-            out[f"count_{cat}"] = vals["total"]
-            per_area_acc.append(acc)
+        return results
 
-        return out
+    def load_questions(self) -> List[Dict[str, Any]]:
+        dataset = load_dataset(self.dataset_name, cache_dir=HF_HUB_CACHE)
+        questions = [row for row in dataset["test"]]
+        if self.debug:
+            questions = questions[:2]
+        self.logger.info(f"Loaded {len(questions)} questions from {self.dataset_name}")
+        return questions
