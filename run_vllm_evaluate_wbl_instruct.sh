@@ -7,10 +7,10 @@ MODEL_PATH="/path/to/wbl_model"
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks GPQADiamond \
     --batch_size auto \
-    --max_tokens 8192 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
@@ -18,32 +18,32 @@ python -m eval.eval \
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks MMLUPro \
     --batch_size auto \
-    --max_tokens 8192 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
     --parse_think \
 
 python -m eval.eval \
-   --model vllm \
-   --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
-   --tasks HLE \
-   --batch_size auto \
-   --max_tokens 8192 \
-   --apply_chat_template \
-   --output_path results \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks HLE \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
     --thinking_budget 2048 \
     --parse_think \
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks KMMLUPro \
     --batch_size auto \
-    --max_tokens 8192 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
@@ -51,10 +51,32 @@ python -m eval.eval \
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks CLIcK \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks KoBALT \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks LiveCodeBenchv6_official \
     --batch_size auto \
-    --max_tokens 8192 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
@@ -62,10 +84,10 @@ python -m eval.eval \
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks AIME25 \
     --batch_size auto \
-    --max_tokens 8192 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
@@ -73,10 +95,43 @@ python -m eval.eval \
 
 python -m eval.eval \
     --model vllm \
-    --model_args pretrained=${MODEL_PATH},pipeline_parallel_size=8,trust_remote_code=True \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks HRM8K \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks IFEval \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
+    --tasks IFBench \
+    --batch_size auto \
+    --max_tokens 16384 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 2048 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True,enforce_eager=True \
     --tasks AALCR \
     --batch_size auto \
-    --max_tokens 262144 \
+    --max_tokens 16384 \
     --apply_chat_template \
     --output_path results \
     --thinking_budget 2048 \
