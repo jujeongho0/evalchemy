@@ -12,24 +12,15 @@ from eval.task import BaseBenchmark
 
 from .testing_utils import get_multiple_choice_answer
 
-PROMPT = """다음 문제에 대해 정답을 고르세요. 당신의 최종 정답은 ABCD 중 하나이고, "정답:" 뒤에 와야 합니다. 정답을 고르기 전에 차근차근 생각하고 추론하세요.
+# Modified version of Adopted from https://arxiv.org/pdf/2505.16125
+PROMPT = """당신은 문제를 해결하는 전문가입니다.
+
+다음 문제에 대해서 충분히 생각하고 추론하여, 10개의 보기(A, B, C, D, E, F, G, H, I, J) 중 정답을 고르세요.
 
 {problem}
 
-A) {A}
-B) {B}
-C) {C}
-D) {D}"""
-
-PROMPT_FIVE = """다음 문제에 대해 정답을 고르세요. 당신의 최종 정답은 ABCDE 중 하나이고, "정답:" 뒤에 와야 합니다. 정답을 고르기 전에 차근차근 생각하고 추론하세요.
-
-{problem}
-
-A) {A}
-B) {B}
-C) {C}
-D) {D}
-E) {E}"""
+당신의 답변 마지막 줄은 다음과 같은 형식으로 작성해야 합니다: '정답: A/B/C/D/E/F/G/H/I/J' (예: '정답: A').
+정답: 문제를 풀기 위해, 한 번 천천히 생각해봅시다."""
 
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
@@ -38,7 +29,7 @@ if not HF_HUB_CACHE:
     )
 
 
-class KMMLUProBenchmark(BaseBenchmark):
+class KoBALTBenchmark(BaseBenchmark):
 
     def __init__(
         self,
@@ -52,7 +43,7 @@ class KMMLUProBenchmark(BaseBenchmark):
         parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
-        self.dataset_name = "LGAI-EXAONE/KMMLU-Pro"
+        self.dataset_name = "snunlp/KoBALT-700"
         self.debug = debug
         self.seed = seed
         self.max_new_tokens = max_tokens
@@ -78,24 +69,14 @@ class KMMLUProBenchmark(BaseBenchmark):
             seed = [s + i for s in self.seed]
 
             for idx, example in enumerate(examples):
-                if len(example["options"]) == 4:
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": PROMPT.format(
-                                problem=example["question"], A=example["options"][0], B=example["options"][1], C=example["options"][2], D=example["options"][3]
-                            ),
-                        },
-                    ]
-                else:
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": PROMPT_FIVE.format(
-                                problem=example["question"], A=example["options"][0], B=example["options"][1], C=example["options"][2], D=example["options"][3], E=example["options"][4]
-                            ),
-                        },
-                    ]
+                messages = [
+                    {
+                        "role": "user",
+                        "content": PROMPT.format(
+                            problem=example["Question"]
+                        ),
+                    },
+                ]
 
                 templated_messages = self._prepare_messages(messages, model)
 
@@ -117,7 +98,7 @@ class KMMLUProBenchmark(BaseBenchmark):
                 all_instances.append(instance)
 
             # Generate model responses
-            self.logger.info("Generating responses for KMMLUPro...")
+            self.logger.info("Generating responses for KoBALT...")
             outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
 
@@ -141,7 +122,7 @@ class KMMLUProBenchmark(BaseBenchmark):
         # Calculate accuracy for each repetition
         all_results = []
         for i in range(self.n_repeat):
-            solved = sum([chr(ord("A")+int(example["solution"])-1) == example["model_answers"][i] for example in examples])
+            solved = sum([example["Answer"] == example["model_answers"][i] for example in examples])
 
             all_results.append(
                 {
@@ -173,7 +154,7 @@ class KMMLUProBenchmark(BaseBenchmark):
 
     def load_questions(self) -> List[Dict[str, Any]]:
         dataset = load_dataset(self.dataset_name, cache_dir=HF_HUB_CACHE)
-        questions = [row for row in dataset["test"]]
+        questions = [row for row in dataset["raw"]]
         if self.debug:
             questions = questions[:2]
         self.logger.info(f"Loaded {len(questions)} questions from {self.dataset_name}")
