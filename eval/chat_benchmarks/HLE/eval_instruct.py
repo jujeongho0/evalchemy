@@ -12,11 +12,7 @@ from run_judge_results import judge_all_responses
 from eval.task import BaseBenchmark
 
 
-########################################################################
-
-# Adapted from https://github.com/centerforaisafety/hle/blob/main/hle_eval/run_model_predictions.py
-
-# FIXME
+# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#hle-prompt
 SYSTEM_EXACT_ANSWER = """Your response should be in the following format:
 Explanation: {{your explanation for your final answer}}
 Exact Answer: {{your succinct, final answer}}
@@ -36,7 +32,7 @@ if not HF_HUB_CACHE:
 
 def format_message(question):
     answer_type = question["answer_type"]
-    system_prompt = SYSTEM_EXACT_ANSWER if answer_type == "exactMatch" else SYSTEM_MC # FIXME
+    system_prompt = SYSTEM_EXACT_ANSWER if answer_type == "exactMatch" else SYSTEM_MC
     question_text = question["question"]
 
     text_content = dict(type="text", text=question_text)
@@ -46,17 +42,9 @@ def format_message(question):
     else:
         content = [text_content]
 
-    # system_role = "user" if "o1" in args.model else "system" # o1 no sys prompt
-    # messages = [
-    #     {"role": system_role, "content": system_prompt},
-    #     {"role": "user", "content": content}
-    # ]
     content = system_prompt + "\n" + question_text
     messages = [{"role": "user", "content": content}]
     return messages
-
-
-########################################################################
 
 
 class HLESubsetBenchmark(BaseBenchmark):
@@ -164,7 +152,7 @@ class HLESubsetBenchmark(BaseBenchmark):
     
     # FIXME
     def evaluate_responses(
-        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18"
+        self, results: Dict[str, Any], judge: str = "gpt-4o-2024-08-06"
     ) -> Dict[str, float]:
 
         if results is None:
@@ -223,9 +211,8 @@ class HLESubsetBenchmark(BaseBenchmark):
         Load HLE questions from source.
         Keep only the multiplechoice and no images.
         """
-        self.logger.info("Loading HLE questions from source, filtering for multiplechoice and no images...")
+        self.logger.info("Loading HLE questions from source, filtering for no images...")
         dataset = load_dataset("cais/hle", split="test", cache_dir=HF_HUB_CACHE)
-        # dataset = dataset.filter(lambda x: x["answer_type"] == "multipleChoice") # FIXME
         dataset = dataset.filter(lambda x: x["image"] == "")
-        self.logger.info(f"{len(dataset)} examples remaining after filtering for multiplechoice and no images.")
+        self.logger.info(f"{len(dataset)} examples remaining after filtering for no images.")
         return dataset
