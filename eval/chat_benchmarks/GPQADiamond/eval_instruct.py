@@ -13,10 +13,12 @@ from eval.task import BaseBenchmark
 
 from .testing_utils import get_multiple_choice_answer
 
-PROMPT = """Return your final response within \\boxed{{}} and only include the letter choice (A, B, C, or D) as your final response.
-Problem: {problem}
-Options: {options}
-Answer:"""
+# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#multiple-choice-questions
+PROMPT = """Answer the following multiple choice question. The last line of your response should be in the following format: 'Answer: A/B/C/D' (e.g. 'Answer: A').
+
+{problem}
+
+{options}"""
 
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
@@ -55,7 +57,7 @@ class GPQADiamondBenchmark(BaseBenchmark):
         self.debug = debug
         self.seed = seed
         self.max_new_tokens = max_tokens
-        self.n_repeat = 1 # FIXME
+        self.n_repeat = 1
         # FIXME
         self.thinking_budget = thinking_budget
         self.parse_think = parse_think
@@ -191,12 +193,13 @@ class GPQADiamondBenchmark(BaseBenchmark):
             data["Incorrect Answer 2"],
             data["Incorrect Answer 3"],
         ]
-        random.shuffle(answers)
+        rnd = random.Random() # FIXME
+        rnd.shuffle(answers)
 
         options = ["A", "B", "C", "D"]
         options_to_answers = {letter: answer for letter, answer in zip(options, answers)}
 
-        multiple_choice_string = ", ".join(f"{letter}) {options_to_answers[letter]}" for letter in options)
+        multiple_choice_string = "\n".join(f"{letter}) {options_to_answers[letter]}" for letter in options)
         correct_answer_letter = next(letter for letter, answer in options_to_answers.items() if answer == data["Correct Answer"])
 
         return multiple_choice_string, correct_answer_letter
