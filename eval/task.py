@@ -92,57 +92,70 @@ class BaseBenchmark(ABC):
             prompts = inputs
         
         # FIXME: Thinking Budget
-        if isinstance(thinking_kwargs["thinking_budget"], int):
-            for prompt in prompts:
-                prompt.arguments[1]["include_stop_str_in_output"] = True
+        if isinstance(thinking_kwargs["thinking_budget"], int):            
+            if isinstance(model, lm_eval_models.huggingface.HFLM):
+                # TODO
+                raise NotImplementedError
 
-            max_gen_toks = prompts[0].arguments[1]["max_gen_toks"]
-            assert max_gen_toks > thinking_kwargs["thinking_budget"]
+            elif isinstance(model, lm_eval_models.vllm_causallms.VLLM):
+                for prompt in prompts:
+                    prompt.arguments[1]["include_stop_str_in_output"] = True
 
-            for instance in prompts:
-                instance.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
-            
-            first_results = model.generate_until(prompts)
+                max_tokens = prompts[0].arguments[1]["max_gen_toks"]
+                assert max_tokens > thinking_kwargs["thinking_budget"]
 
-            results, temp_results, second_prompts = [], [], []
-            for instance, fr in zip(prompts, first_results):
-                if "<|END|>" in fr:
-                    results.append(fr.replace("<|END|>", ""))
+                for instance in prompts:
+                   instance.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
+                
+                first_results = model.generate_until(prompts)
 
-                else:
-                    results.append(None)
-
-                    if "</think>" in fr:
-                        temp_results.append(fr)
-                        instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
-                        instance.arguments[1]["max_gen_toks"] = max_gen_toks - thinking_kwargs["thinking_budget"]
-                        second_prompts.append(instance)
+                results, temp_results, second_prompts = [], [], []
+                for instance, fr in zip(prompts, first_results):
+                    if "<|END|>" in fr:
+                        results.append(fr.replace("<|END|>", ""))
 
                     else:
-                        early_stopping_text = "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
-                        temp_results.append(fr + early_stopping_text)
-                        instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
-                        instance.arguments[1]["max_gen_toks"] = max_gen_toks - thinking_kwargs["thinking_budget"] - 30
+                        results.append(None)
+
+                        if "</think>" in fr:
+                            temp_results.append(fr)
+                            instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
+
+                        else:
+                            early_stopping_text = "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
+                            temp_results.append(fr + early_stopping_text)
+                            instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
+                        
+                        instance.arguments[1]["max_gen_toks"] = max_tokens - thinking_kwargs["thinking_budget"]
                         second_prompts.append(instance)
 
-            second_results = model.generate_until(second_prompts)
+                del prompts
+                del first_results
 
-            idx = 0
-            for i, r in enumerate(results):
-                if r is None:
-                    results[i] = temp_results[idx] + second_results[idx].replace("<|END|>", "")
-                    idx += 1
+                if second_prompts:
+                    second_results = model.generate_until(second_prompts)
 
+                    idx = 0
+                    for i, r in enumerate(results):
+                        if r is None:
+                            results[i] = temp_results[idx] + second_results[idx].replace("<|END|>", "")
+                            idx += 1
+
+            else:
+                raise NotImplementedError
+            
         else:
             results = model.generate_until(prompts)
 
         # FIXME: Parsing thinking content
         if thinking_kwargs["parse_think"]:
-            results = [r.split("</think>")[-1].strip() for r in results]
+            results = [r.split("</think>")[-1].lstrip() for r in results]
 
-        # TODO: WBL models need post-processing of results
-        def clean_blocks(text):
+        # FIXME: WBL models need post-processing of results
+        def clean_blocks(text):            
+            text = text.replace("▁", " ")
             return text
+        
         results = [clean_blocks(r) for r in results]
 
         if model.world_size > 1:
