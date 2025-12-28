@@ -61,8 +61,9 @@ def evaluate_accuracy(response_filename):
     prompt_to_response = read_prompt_to_response_dict(response_filename)
 
     for func, output_file in [
+        # FIXME: We only want to know the strict score in ifeval.
         (test_instruction_following_strict, "eval_results_strict"),
-        (test_instruction_following_loose, "eval_restuls_loose"),
+        # (test_instruction_following_loose, "eval_restuls_loose"),
     ]:
         # logging.info(f"Generating {output_file}")
         outputs = []
