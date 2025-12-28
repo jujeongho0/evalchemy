@@ -95,7 +95,7 @@ class AALCRBenchmark(BaseBenchmark):
         return {"examples": examples_list}
 
     def evaluate_responses(
-        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18"
+        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18" # TODO: Qwen/Qwen3-235B-A22B-Instruct-2507
     ) -> Dict[str, float]:
 
         # Handle None result from non-primary ranks
@@ -167,7 +167,7 @@ class AALCRBenchmark(BaseBenchmark):
                     with open(document_path, encoding="utf-8") as f:
                         docs.append(f.read())
                 except:
-                    pass # ISSUE: Certain .txt files are not present in the dataset.
+                    self.logger.info(f"{document_path} file does not exist...") # FIXME: Certain .txt files are not present in the dataset.
             
             documents_text = "\n\n".join(f"BEGIN DOCUMENT {i + 1}:\n{doc}\nEND DOCUMENT {i + 1}" for i, doc in enumerate(docs))
             question = f"BEGIN INPUT DOCUMENTS\n\n{documents_text}\n\nEND INPUT DOCUMENTS\n\nAnswer the following question using the input documents provided above.\n\nSTART QUESTION\n\n{d['question']}\n\nEND QUESTION\n"
