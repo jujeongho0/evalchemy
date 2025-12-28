@@ -9,9 +9,12 @@ from lm_eval.tasks.hendrycks_math.utils import is_equiv, last_boxed_only_string,
 
 from eval.task import BaseBenchmark
 
-# Modified version of hendrycks_math with additional instruction to mark the solution with \\boxed
-# https://github.com/mlfoundations/evalchemy/blob/e70a45e41cb2ada273d6bb98e75dba303ec31f8b/eval/chat_benchmarks/AMC23/eval_instruct.py#L15
-PROMPT = """Problem: {problem}\nMark your solution with \\boxed\nAnswer:"""
+# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#mathematical-questions
+PROMPT = """Solve the following math problem step by step. Put your answer inside \\boxed{{}}.
+
+{problem}
+
+Remember to put your answer inside \\boxed{{}}."""
 
 
 class AIME25Benchmark(BaseBenchmark):
