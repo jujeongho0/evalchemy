@@ -21,6 +21,9 @@ class IFEvalBenchmark(BaseBenchmark):
         max_tokens: int = 512,
         logger: Optional[logging.Logger] = None,
         system_instruction: Optional[str] = None,
+        # FIXME
+        thinking_budget: Optional[int] = None,
+        parse_think: Optional[bool] = False,
     ):
         """
         Initialize Instruction Following Benchmark
@@ -42,6 +45,9 @@ class IFEvalBenchmark(BaseBenchmark):
         self.start_idx = start_idx
         self.end_idx = end_idx
         self.debug = debug
+        # FIXME
+        self.thinking_budget = thinking_budget
+        self.parse_think = parse_think
 
     def read_test_examples(self, data_path: str) -> Generator[Dict[str, str], None, None]:
         """
@@ -103,7 +109,8 @@ class IFEvalBenchmark(BaseBenchmark):
                                 inputs,
                                 {
                                     "max_new_tokens": self.max_tokens,
-                                    "do_sample": False,
+                                    "do_sample": True,
+                                    "temperature": 0.7,
                                 },
                             ),
                             idx,
@@ -115,7 +122,7 @@ class IFEvalBenchmark(BaseBenchmark):
                     continue
 
             self.logger.info("Generating responses...")
-            outputs = self.compute(model, all_instances)
+            outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
 
             if model.rank != 0:
                 return None

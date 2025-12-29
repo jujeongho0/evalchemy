@@ -31,7 +31,7 @@ PROMPT_CONTEXT = """주어진 맥락을 천천히 읽고, 질문에 대한 적�
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
     print(
-        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for KMMLUPro benchmark"
+        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for CLIcK benchmark"
     )
 
 
@@ -101,7 +101,7 @@ class CLIcKBenchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": False,
+                            "do_sample": True,
                             "temperature": 0.7,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,

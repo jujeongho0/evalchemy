@@ -21,7 +21,7 @@ PROMPT = """주어진 문제를 풀어보세요.
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
     print(
-        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for KMMLUPro benchmark"
+        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for HRM8K benchmark"
     )
 
 
@@ -82,7 +82,7 @@ class HRM8KBenchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": False,
+                            "do_sample": True,
                             "temperature": 0.7,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,
@@ -105,7 +105,7 @@ class HRM8KBenchmark(BaseBenchmark):
         for example, outputs in zip(examples, zip(*all_outputs)):
             example["model_outputs"] = list(outputs)
             example["model_answers"] = [self.parse_math_answer(o) for o in outputs]
-            example["answer"] = self.parse_math_answer(self.postprocess(example["answer"]))
+            example["answer"] = self.postprocess(example["answer"])
 
         return {"examples": examples}
 
@@ -160,14 +160,6 @@ class HRM8KBenchmark(BaseBenchmark):
         self.logger.info(f"Loaded {len(questions)} questions from {self.dataset_name}")
         return questions
     
-    def postprocess(self, s):
-        s = str(s).strip()
-        try:
-            float_value = float(s)
-            return str(int(float_value)) if float_value.is_integer() else str(float_value)
-        except Exception:
-            return s
-    
     def is_equiv(self, str1, str2):
         if str1 is None and str2 is None:
             return True
@@ -181,6 +173,14 @@ class HRM8KBenchmark(BaseBenchmark):
             return ss1 == ss2
         except Exception:
             return str1 == str2
+
+    def postprocess(self, s):
+        s = str(s).strip()
+        try:
+            float_value = float(s)
+            return str(int(float_value)) if float_value.is_integer() else str(float_value)
+        except Exception:
+            return s
         
     def parse_math_answer(self, raw_string):
         def remove_boxed(s):
@@ -283,7 +283,6 @@ class HRM8KBenchmark(BaseBenchmark):
         string = new_str
         return string
 
-
     def _fix_a_slash_b(self, string):
         if len(string.split("/")) != 2:
             return string
@@ -298,7 +297,6 @@ class HRM8KBenchmark(BaseBenchmark):
         except Exception:
             return string
 
-
     def _remove_right_units(self, string):
         # "\\text{ " only ever occurs (at least in the val set) when describing units
         if "\\text{ " in string:
@@ -307,7 +305,6 @@ class HRM8KBenchmark(BaseBenchmark):
             return splits[0]
         else:
             return string
-
 
     def _fix_sqrt(self, string):
         if "\\sqrt" not in string:
@@ -322,7 +319,6 @@ class HRM8KBenchmark(BaseBenchmark):
                 new_substr = "\\sqrt" + split
             new_string += new_substr
         return new_string
-
 
     def _strip_string(self, string):
         # linebreaks

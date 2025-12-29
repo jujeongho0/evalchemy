@@ -85,7 +85,7 @@ class MATH500Benchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": False,
+                            "do_sample": True,
                             "max_new_tokens": self.max_new_tokens,
                             "temperature": 0.7,
                             "seed": self.seed,
@@ -106,6 +106,7 @@ class MATH500Benchmark(BaseBenchmark):
         for example, output in zip(examples, outputs):
             example["model_output"] = output
             example["model_answer"] = self.extract_answer(output)
+            example["answer"] = str(example["answer"])
 
         return {"examples": examples}
 
@@ -118,7 +119,7 @@ class MATH500Benchmark(BaseBenchmark):
 
         examples = results["examples"]
         total = len(examples)
-        solved = sum(is_equiv(str(example["answer"]), example["model_answer"]) for example in examples)
+        solved = sum(is_equiv(example["answer"], example["model_answer"]) for example in examples)
 
         results.update(
             {

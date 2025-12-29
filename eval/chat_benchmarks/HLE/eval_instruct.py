@@ -115,7 +115,7 @@ class HLESubsetBenchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": False,
+                            "do_sample": True,
                             "max_new_tokens": self.max_new_tokens,
                             "temperature": 0.7,
                             "seed": seed,

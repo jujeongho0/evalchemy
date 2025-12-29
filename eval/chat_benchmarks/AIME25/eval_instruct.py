@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
-from lm_eval.tasks.hendrycks_math.utils import is_equiv, last_boxed_only_string, remove_boxed
+from lm_eval.tasks.hendrycks_math.utils import is_equiv, last_boxed_only_string, remove_boxed, strip_string
 
 from eval.task import BaseBenchmark
 
@@ -51,7 +51,7 @@ class AIME25Benchmark(BaseBenchmark):
         self.debug = debug
         self.max_new_tokens = max_tokens
         self.seed = seed
-        self.n_repeat = 1 # FIXME
+        self.n_repeat = 16 # FIXME
         # FIXME
         self.thinking_budget = thinking_budget
         self.parse_think = parse_think
@@ -88,7 +88,7 @@ class AIME25Benchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": False,
+                            "do_sample": True,
                             "max_new_tokens": self.max_new_tokens,
                             "temperature": 0.7,
                             "seed": seed,
@@ -118,6 +118,7 @@ class AIME25Benchmark(BaseBenchmark):
         for example, outputs in zip(examples, zip(*all_outputs)):
             example["model_outputs"] = list(outputs)
             example["model_answers"] = [self.extract_answer(o) for o in outputs]
+            example["answer"] = str(example["answer"])
 
         return {"examples": examples}
 
@@ -134,7 +135,7 @@ class AIME25Benchmark(BaseBenchmark):
         # Calculate accuracy for each repetition
         all_results = []
         for i in range(self.n_repeat):
-            solved = sum([is_equiv(str(example["answer"]), example["model_answers"][i]) for example in examples])
+            solved = sum([is_equiv(example["answer"], example["model_answers"][i]) for example in examples])
             all_results.append(
                 {
                     "repetition": i + 1,

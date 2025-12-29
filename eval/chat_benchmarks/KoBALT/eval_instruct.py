@@ -12,28 +12,24 @@ from eval.task import BaseBenchmark
 
 from .testing_utils import get_multiple_choice_answer
 
-choices = [chr(ord("A") + i) for i in range(16)]
+# Modified version of Adopted from https://arxiv.org/pdf/2505.16125
+PROMPT = """당신은 문제를 해결하는 전문가입니다.
 
+다음 문제에 대해서 충분히 생각하고 추론하여, 10개의 보기(A, B, C, D, E, F, G, H, I, J) 중 정답을 고르세요.
 
-# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#multiple-choice-questions
-def generate_cot_prompt(curr: Dict[str, Any]) -> str:
-    # Load base template
-    prompt = "Answer the following multiple choice question. The last line of your response should be in the following format: 'Answer: A/B/C/D/E/F/G/H/I/J' (e.g. 'Answer: A')."
-    prompt += "\n\n" + curr["question"] + "\n\n"
-    for i, opt in enumerate(curr["options"]):
-        prompt += f"{choices[i]}) {opt}\n"
-    prompt += "Answer: Let's think step by step."
-    return prompt
+{problem}
 
+당신의 답변 마지막 줄은 다음과 같은 형식으로 작성해야 합니다: '정답: A/B/C/D/E/F/G/H/I/J' (예: '정답: A').
+정답: 문제를 풀기 위해, 한 번 천천히 생각해봅시다."""
 
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
     print(
-        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for MMLUPro benchmark"
+        "WARNING: HF_HUB_CACHE environment variable is not set, using default cache directory ~/.cache/huggingface/hub for KoBALT benchmark"
     )
 
 
-class MMLUProBenchmark(BaseBenchmark):
+class KoBALTBenchmark(BaseBenchmark):
 
     def __init__(
         self,
@@ -47,7 +43,7 @@ class MMLUProBenchmark(BaseBenchmark):
         parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
-        self.dataset_name = "TIGER-Lab/MMLU-Pro"
+        self.dataset_name = "snunlp/KoBALT-700"
         self.debug = debug
         self.seed = seed
         self.max_new_tokens = max_tokens
@@ -73,9 +69,15 @@ class MMLUProBenchmark(BaseBenchmark):
             seed = [s + i for s in self.seed]
 
             for idx, example in enumerate(examples):
-                prompt = generate_cot_prompt(example)
+                messages = [
+                    {
+                        "role": "user",
+                        "content": PROMPT.format(
+                            problem=example["Question"]
+                        ),
+                    },
+                ]
 
-                messages = [{"role": "user", "content": prompt}]
                 templated_messages = self._prepare_messages(messages, model)
 
                 instance = Instance(
@@ -96,7 +98,7 @@ class MMLUProBenchmark(BaseBenchmark):
                 all_instances.append(instance)
 
             # Generate model responses
-            self.logger.info("Generating responses for MMLUPro...")
+            self.logger.info("Generating responses for KoBALT...")
             outputs = self.compute(model=model, inputs=all_instances, thinking_budget=self.thinking_budget, parse_think=self.parse_think) # FIXME
             all_outputs.append(outputs)
 
@@ -120,7 +122,7 @@ class MMLUProBenchmark(BaseBenchmark):
         # Calculate accuracy for each repetition
         all_results = []
         for i in range(self.n_repeat):
-            solved = sum([example["answer"] == example["model_answers"][i] for example in examples])
+            solved = sum([example["Answer"] == example["model_answers"][i] for example in examples])
 
             all_results.append(
                 {
@@ -152,7 +154,7 @@ class MMLUProBenchmark(BaseBenchmark):
 
     def load_questions(self) -> List[Dict[str, Any]]:
         dataset = load_dataset(self.dataset_name, cache_dir=HF_HUB_CACHE)
-        questions = [row for row in dataset["test"]]
+        questions = [row for row in dataset["raw"]]
         if self.debug:
             questions = questions[:2]
         self.logger.info(f"Loaded {len(questions)} questions from {self.dataset_name}")

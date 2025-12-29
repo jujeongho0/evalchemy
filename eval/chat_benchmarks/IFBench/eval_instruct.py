@@ -10,13 +10,13 @@ from eval.task import BaseBenchmark
 from .evaluation import evaluate_accuracy
 
 
-class IFEvalBenchmark(BaseBenchmark):
+class IFBenchBenchmark(BaseBenchmark):
     def __init__(
         self,
-        data_dir: str = "eval/chat_benchmarks/IFEval/data",
+        data_dir: str = "eval/chat_benchmarks/IFBench/data",
         num_examples: int = 0, # FIXME
         start_idx: int = 0, # FIXME
-        end_idx: int = 540, # FIXME
+        end_idx: int = 293, # FIXME
         debug: bool = False,
         max_tokens: int = 512,
         logger: Optional[logging.Logger] = None,
@@ -109,7 +109,7 @@ class IFEvalBenchmark(BaseBenchmark):
                                 inputs,
                                 {
                                     "max_new_tokens": self.max_tokens,
-                                    "do_sample": False,
+                                    "do_sample": True,
                                     "temperature": 0.7,
                                 },
                             ),
@@ -138,7 +138,7 @@ class IFEvalBenchmark(BaseBenchmark):
                     self.logger.error(f"Error processing output for {example['key']}: {str(e)}")
                     continue
 
-            output_path = os.path.join(temp_dir, "ifeval.jsonl")
+            output_path = os.path.join(temp_dir, "ifbench.jsonl")
 
             with open(output_path, "w", encoding="utf-8") as fw:
                 for ex in generated_examples:
@@ -169,7 +169,7 @@ class IFEvalBenchmark(BaseBenchmark):
             temp_dir = temp_dir_obj.name
 
             input_file = os.path.join(self.data_dir, "input_data.jsonl")
-            response_file = os.path.join(temp_dir, "ifeval.jsonl")
+            response_file = os.path.join(temp_dir, "ifbench.jsonl")
             result = evaluate_accuracy(response_file)
 
             result.update(
@@ -200,14 +200,14 @@ class IFEvalBenchmark(BaseBenchmark):
         Returns:
             Dictionary containing evaluation metrics
         """
-        self.logger.info("Starting IFEval benchmark evaluation")
+        self.logger.info("Starting IFBench benchmark evaluation")
 
         try:
             generation_results = self.generate_responses(model)
             evaluation_results = self.evaluate_responses(generation_results)
 
             evaluation_results.update(
-                {"benchmark_version": "ifeval", "max_tokens": self.max_tokens, "num_shot": self.num_examples}
+                {"benchmark_version": "ifbench", "max_tokens": self.max_tokens, "num_shot": self.num_examples}
             )
 
             return evaluation_results
