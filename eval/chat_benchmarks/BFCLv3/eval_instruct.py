@@ -83,7 +83,6 @@ class BFCLv3Benchmark(BaseBenchmark):
             for idx, example in enumerate(examples):
                 messages = [
                     {"role": "system", "content": example["question"][0][0]["content"].strip()},
-                    # {"role": "system", "content": "The following tools are available to you. Please use them to answer the user\'s question."},
                     {"role": "user", "content": example["question"][0][1]["content"].strip()},
                 ]
 
