@@ -86,7 +86,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         """
         examples = self.load_questions()
         if self.debug:
-            examples = examples.select(range(2))
+            examples = examples.select(range(10))
 
         all_outputs = []
 
@@ -97,16 +97,16 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
             for idx, example in enumerate(examples):
                 if example["is_stdin"]:
                     prompt_text = (
-                        "Generate an executable Python function generated from the given prompt. The function should take stdin as input and print the output. Simply call the function after the definition."
+                        "Generate an executable Python function generated from the given prompt. The function should take stdin as input and print the output. Simply call the function after the definition.\n\n"
                         + example["prompt"]
                     )
                 else:
                     prompt_text = (
-                        "Generate an executable Python function generated from the given prompt. Return the function body without invoking it at the final solution."
+                        "Generate an executable Python function generated from the given prompt. Return the function body without invoking it at the final solution.\n\n"
                         + example["prompt"]
                     )
                 messages = [{"role": "user", "content": prompt_text}]
-
+                
                 templated_messages = self._prepare_messages(messages, model)
 
                 instance = Instance(
