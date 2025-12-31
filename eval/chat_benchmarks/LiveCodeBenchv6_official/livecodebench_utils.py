@@ -173,6 +173,7 @@ def run_test_std(completion, test_input, test_output):
         sys.stdout = output
         sys.stdin = io.StringIO(test_input)
         try:
+            completion = completion.replace("__name__ == '__main__'", '__name__ == "__main__"') # FIXME
             exec(f'__name__ = "__main__"\n{completion}' if '__name__ == "__main__"' in completion else completion, {})
             return output.getvalue().strip() == test_output, output.getvalue().strip()
         finally:
