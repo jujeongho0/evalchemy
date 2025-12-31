@@ -13,7 +13,7 @@ from eval.task import BaseBenchmark
 from .testing_utils import get_multiple_choice_answer
 
 # Modified version of https://arxiv.org/pdf/2403.06412
-PROMPT = """주어진 맥락을 천천히 읽고, 질문에 대한 적절한 정답을 A, B, C, D 중에 골라 알파벳 하나로 답하시오.
+PROMPT = """주어진 질문을 천천히 읽고, 적절한 정답을 A, B, C, D 중에 골라 알파벳 하나로 답하시오.
 
 질문: {problem}
 보기: A: {A}, B: {B}, C: {C}, D: {D}
