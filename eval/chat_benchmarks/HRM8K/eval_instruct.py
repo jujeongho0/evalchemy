@@ -12,11 +12,10 @@ from lm_eval.api.model import LM
 from eval.task import BaseBenchmark
 
 # Adopted from https://arxiv.org/pdf/2501.02448
-PROMPT = """주어진 문제를 풀어보세요.
-문제를 푼 후, 최종 답변을 다음과 같은 형식으로 작성하세요: $\\boxed{{N}}$.
+PROMPT = """Solve the given question.
+After solving the problem, state your final answer in the following format: $\\boxed{{N}}$.
 
-문제: {problem}
-답변:"""
+{problem} Respond in Korean."""
 
 HF_HUB_CACHE = os.environ.get("HF_HUB_CACHE")
 if not HF_HUB_CACHE:
