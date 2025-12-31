@@ -13,7 +13,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -24,7 +24,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -35,7 +35,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -46,7 +46,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -57,7 +57,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -68,7 +68,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -79,7 +79,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -90,7 +90,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -101,7 +101,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -112,7 +112,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -123,7 +123,7 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
 
 python -m eval.eval \
@@ -134,5 +134,5 @@ python -m eval.eval \
     --max_tokens 32768 \
     --apply_chat_template \
     --output_path results \
-    --thinking_budget 2048 \
+    --thinking_budget 16384 \
     --parse_think \
