@@ -57,7 +57,7 @@ class AALCRBenchmark(BaseBenchmark):
                         "content": example["question"],
                     },
                 ]
-
+                
                 templated_messages = self._prepare_messages(messages, model)
 
                 instance = Instance(
@@ -95,7 +95,7 @@ class AALCRBenchmark(BaseBenchmark):
         return {"examples": examples_list}
 
     def evaluate_responses(
-        self, results: Dict[str, Any], judge: str = "gpt-4o-mini-2024-07-18" # TODO: Qwen/Qwen3-235B-A22B-Instruct-2507
+        self, results: Dict[str, Any], judge: str = "qwen/qwen3-235b-a22b-2507"
     ) -> Dict[str, float]:
 
         # Handle None result from non-primary ranks
@@ -119,7 +119,7 @@ class AALCRBenchmark(BaseBenchmark):
             solved = 0
             for j, (unique_id, predictions) in enumerate(eval_results):
                 if unique_id is not None:
-                    solved += ("correct" in predictions["judge_response"]["response"].lower() and "incorrect" not in predictions["judge_response"]["response"].lower())
+                    solved += predictions["judge_response"]["response"] == "CORRECT"
                     examples[j]["judge_responses"].append(predictions["judge_response"])
 
             all_results.append(
