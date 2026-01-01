@@ -110,7 +110,9 @@ class GPQADiamondBenchmark(BaseBenchmark):
                         templated_messages,
                         {
                             "do_sample": False,
-                            "temperature": 0.7,
+                            "temperature": 0.6,
+                            "top_p": 0.95,
+                            "top_k": 20,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,
                         },
