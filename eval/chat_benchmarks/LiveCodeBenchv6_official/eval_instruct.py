@@ -118,6 +118,8 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
                             "do_sample": True,
                             "max_new_tokens": self.max_new_tokens,
                             "temperature": 0.7,
+                            "top_p": 0.95,
+                            "top_k": 20,
                             "seed": seed,
                         },
                     ),
