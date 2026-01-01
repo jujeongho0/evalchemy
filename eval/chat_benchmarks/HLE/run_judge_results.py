@@ -12,7 +12,7 @@ client = AsyncOpenAI(
     max_retries=1
 )
 
-# FIXME: Adopte from https://artificialanalysis.ai/methodology/intelligence-benchmarking#hle-equality-checker-prompt
+# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#hle-equality-checker-prompt
 JUDGE_PROMPT = """Judge whether the following [response] to [question] is correct or not based on the precise and unambiguous [correct_answer] below.
 
 [question]: {question}
