@@ -27,16 +27,16 @@ python -m eval.eval \
     --thinking_budget 16384 \
     --parse_think \
 
-python -m eval.eval \
-    --model vllm \
-    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-    --tasks HLE \
-    --batch_size auto \
-    --max_tokens 32768 \
-    --apply_chat_template \
-    --output_path results \
-    --thinking_budget 16384 \
-    --parse_think \
+# python -m eval.eval \
+#     --model vllm \
+#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+#     --tasks HLE \
+#     --batch_size auto \
+#     --max_tokens 32768 \
+#     --apply_chat_template \
+#     --output_path results \
+#     --thinking_budget 16384 \
+#     --parse_think \
 
 python -m eval.eval \
     --model vllm \
@@ -126,10 +126,43 @@ python -m eval.eval \
     --thinking_budget 16384 \
     --parse_think \
 
+# python -m eval.eval \
+#     --model vllm \
+#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+#     --tasks AALCR \
+#     --batch_size auto \
+#     --max_tokens 32768 \
+#     --apply_chat_template \
+#     --output_path results \
+#     --thinking_budget 16384 \
+#     --parse_think \
+
 python -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-    --tasks AALCR \
+    --tasks BFCLv3 \
+    --batch_size auto \
+    --max_tokens 32768 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 16384 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks MMLUPro_official \
+    --batch_size auto \
+    --max_tokens 32768 \
+    --apply_chat_template \
+    --output_path results \
+    --thinking_budget 16384 \
+    --parse_think \
+
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks MATH500 \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
