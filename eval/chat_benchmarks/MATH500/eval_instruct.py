@@ -23,8 +23,6 @@ class MATH500Benchmark(BaseBenchmark):
     """
     MATH500 Benchmark for evaluating the math reasoning of LLMs.
     Link: https://huggingface.co/datasets/HuggingFaceH4/MATH-500
-
-    Follows the evaluation logic of hendrycks_math answer extraction.
     """
 
     def __init__(
@@ -118,7 +116,10 @@ class MATH500Benchmark(BaseBenchmark):
 
         return {"examples": examples}
 
-    def evaluate_responses(self, results: Dict[str, Any]) -> Dict[str, float]:
+    # FIXME
+    def evaluate_responses(
+        self, results: Dict[str, Any], judge: str = "gpt-4o-2024-08-06"
+    ) -> Dict[str, float]:
         """Evaluate the generated solution completions."""
 
         # Handle None result from non-primary ranks
@@ -127,8 +128,27 @@ class MATH500Benchmark(BaseBenchmark):
 
         examples = results["examples"]
         total = len(examples)
-        solved = sum(self.is_equiv(example["model_answer"], example["answer"]) for example in examples)
 
+        solved = 0
+        incorrect_indices, questions, predictions = [], [], {}
+        for i, example in enumerate(examples):
+            if self.is_equiv(example["model_answer"], example["answer"]):
+                solved += 1
+                continue
+            
+            incorrect_indices.append(i)
+            questions.append({"id": example["unique_id"], "answer": example["answer"]})
+            predictions[example["unique_id"]]= {"response": example["model_answer"]}
+
+        # FIXME: API Fallback
+        # if questions:
+        #     eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
+
+        #     for ii, (unique_id, predictions) in zip(incorrect_indices, eval_results):
+        #         if unique_id is not None:
+        #             solved += predictions["judge_response"]["equivalent"] == "Yes"
+        #             examples[ii]["judge_response"] = predictions["judge_response"]
+        
         results.update(
             {
                 "num_total": total,
@@ -143,6 +163,8 @@ class MATH500Benchmark(BaseBenchmark):
         """Load MATH500 questions from the data file."""
         with open(self.data_file, "r") as f:
             questions = [json.loads(x) for x in f]
+        if self.debug:
+            questions = questions[:2]
         self.logger.info(f"Loaded {len(questions)} questions from {self.data_file}")
         return questions
 
