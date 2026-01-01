@@ -1,12 +1,14 @@
 import asyncio
 import copy
+from typing import Literal
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from tqdm.asyncio import tqdm_asyncio
 
 client = AsyncOpenAI(
-    api_key="", # TODO: You need to enter your OpenAI API KEY.
+    api_key="", # TODO: You need to enter your OpenRouter API KEY.
+    base_url="https://openrouter.ai/api/v1",
     timeout=300.0,
     max_retries=1
 )
@@ -23,7 +25,7 @@ Reply only with CORRECT or INCORRECT."""
 
 
 class ExtractedAnswer(BaseModel):
-    response: str
+    response: Literal["CORRECT", "INCORRECT"]
 
 
 async def extract_answer(question, correct_answer, response, judge):
