@@ -101,8 +101,8 @@ class BFCLv3Benchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": True,
-                            "temperature": 0.7,
+                            "do_sample": False,
+                            "temperature": 0.0,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,
                         },
