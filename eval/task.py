@@ -149,7 +149,7 @@ class BaseBenchmark(ABC):
 
         # FIXME: Parsing thinking content
         if thinking_kwargs["parse_think"]:
-            results = [r.split("</think>")[-1].lstrip() for r in results]
+            results = [r.split(thinking_kwargs["parse_think"])[-1].lstrip() for r in results]
 
         # FIXME: WBL models need post-processing of results
         def clean_blocks(text):            
