@@ -141,7 +141,7 @@ def setup_custom_parser():
 
     parser.add_argument(
         "--parse_think",
-        action="store_true",
+         type=str,
     )
 
     return parser
