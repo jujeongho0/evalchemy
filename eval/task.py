@@ -92,7 +92,7 @@ class BaseBenchmark(ABC):
             prompts = inputs
         
         # FIXME: Thinking Budget
-        if isinstance(thinking_kwargs["thinking_budget"], int):            
+        if isinstance(thinking_kwargs["thinking_budget"], int) and not thinking_kwargs["parse_think"]:         
             if isinstance(model, lm_eval_models.huggingface.HFLM):
                 # TODO
                 raise NotImplementedError
@@ -117,12 +117,12 @@ class BaseBenchmark(ABC):
                     else:
                         results.append(None)
 
-                        if "</think>" in fr:
+                        if thinking_kwargs["parse_think"] in fr:
                             temp_results.append(fr)
                             instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
 
                         else:
-                            early_stopping_text = "\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n\n"
+                            early_stopping_text = f"\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n{thinking_kwargs['parse_think']}\n\n"
                             temp_results.append(fr + early_stopping_text)
                             instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
                         
