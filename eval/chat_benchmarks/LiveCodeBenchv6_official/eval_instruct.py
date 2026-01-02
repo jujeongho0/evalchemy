@@ -53,7 +53,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         system_instruction: Optional[str] = None,
         # FIXME
         thinking_budget: Optional[int] = None,
-        parse_think: Optional[bool] = False,
+        parse_think: Optional[str] = None,
     ):
         """
         Initialize LiveCodeBenchV6 benchmark.
