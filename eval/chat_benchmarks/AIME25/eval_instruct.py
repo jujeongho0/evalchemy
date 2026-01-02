@@ -35,7 +35,7 @@ class AIME25Benchmark(BaseBenchmark):
         system_instruction: Optional[str] = None,
         # FIXME
         thinking_budget: Optional[int] = None,
-        parse_think: Optional[bool] = False,
+        parse_think: Optional[str] = False,
     ):
         """
         Initialize AIME25 benchmark.
