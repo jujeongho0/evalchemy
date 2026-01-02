@@ -88,11 +88,9 @@ class AIME25Benchmark(BaseBenchmark):
                     (
                         templated_messages,
                         {
-                            "do_sample": True,
+                            "do_sample": False,
                             "max_new_tokens": self.max_new_tokens,
-                            "temperature": 0.7,
-                            "top_p": 0.95,
-                            "top_k": 20,
+                            "temperature": 0.0,
                             "seed": seed,
                         },
                     ),
