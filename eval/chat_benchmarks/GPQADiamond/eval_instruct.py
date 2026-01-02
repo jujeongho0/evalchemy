@@ -195,7 +195,7 @@ class GPQADiamondBenchmark(BaseBenchmark):
             data["Incorrect Answer 2"],
             data["Incorrect Answer 3"],
         ]
-        rnd = random.Random() # FIXME
+        rnd = random.Random(42)
         rnd.shuffle(answers)
 
         options = ["A", "B", "C", "D"]
