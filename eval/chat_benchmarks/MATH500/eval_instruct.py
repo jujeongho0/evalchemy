@@ -143,13 +143,13 @@ class MATH500Benchmark(BaseBenchmark):
             predictions[example["unique_id"]]= {"response": example["model_answer"]}
 
         # FIXME: API Fallback
-        # if questions:
-        #     eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
+        if questions:
+            eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
 
-        #     for ii, (unique_id, predictions) in zip(incorrect_indices, eval_results):
-        #         if unique_id is not None:
-        #             solved += predictions["judge_response"]["equivalent"] == "Yes"
-        #             examples[ii]["judge_response"] = predictions["judge_response"]
+            for ii, (unique_id, predictions) in zip(incorrect_indices, eval_results):
+                if unique_id is not None:
+                    solved += predictions["judge_response"]["equivalent"] == "Yes"
+                    examples[ii]["judge_response"] = predictions["judge_response"]
         
         results.update(
             {
