@@ -3,7 +3,8 @@
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 export HF_HUB_CACHE="/path/to/.cache/huggingface/hub"
 
-MODEL_PATH="/path/to/wbl_model"
+MODEL_PATH="NC-AI-consortium-VAETKI/VAETKI"
+OUTPUT_PATH="/path/to/output_path"
 
 python -m eval.eval \
     --model vllm \
@@ -12,7 +13,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 24576 \
     --parse_think "</think>" \
 
@@ -23,7 +24,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -34,7 +35,7 @@ python -m eval.eval \
 #     --batch_size auto \
 #     --max_tokens 32768 \
 #     --apply_chat_template \
-#     --output_path results \
+#     --output_path ${OUTPUT_PATH} \
 #     --thinking_budget 24576 \
 #     --parse_think "</think>" \
 
@@ -45,7 +46,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -56,7 +57,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -67,7 +68,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -78,7 +79,7 @@ python -m eval.eval \
 #     --batch_size auto \
 #     --max_tokens 32768 \
 #     --apply_chat_template \
-#     --output_path results \
+#     --output_path ${OUTPUT_PATH} \
 #     --thinking_budget 16384 \
 #     --parse_think "</think>" \
 
@@ -89,7 +90,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -100,7 +101,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -111,7 +112,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -122,7 +123,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 24576 \
     --parse_think "</think>" \
 
@@ -133,18 +134,18 @@ python -m eval.eval \
 #     --batch_size auto \
 #     --max_tokens 32768 \
 #     --apply_chat_template \
-#     --output_path results \
+#     --output_path ${OUTPUT_PATH} \
 #     --thinking_budget 16384 \
 #     --parse_think "</think>" \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks BFCLv3 \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path results \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks BFCLv3 \
+    --batch_size auto \
+    --max_tokens 32768 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
 
 python -m eval.eval \
     --model vllm \
@@ -153,7 +154,7 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
@@ -164,6 +165,6 @@ python -m eval.eval \
     --batch_size auto \
     --max_tokens 32768 \
     --apply_chat_template \
-    --output_path results \
+    --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
     --parse_think "</think>" \
