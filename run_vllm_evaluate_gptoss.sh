@@ -11,10 +11,9 @@ OUTPUT_PATH="/path/to/output_path"
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks GPQADiamond \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 24576 \
 #     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -22,10 +21,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks MMLUPro \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 16384 \
     --parse_think "<|message|>" \
 
 # python -m eval.eval \
@@ -33,10 +31,9 @@ python -m eval.eval \
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks HLE \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 24576 \
 #     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -44,10 +41,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks KMMLUPro \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 16384 \
     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -55,10 +51,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks CLIcK \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 16384 \
     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -66,10 +61,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks KoBALT \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 16384 \
     --parse_think "<|message|>" \
 
 # python -m eval.eval \
@@ -77,10 +71,9 @@ python -m eval.eval \
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks LiveCodeBenchv6_official \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 16384 \
 #     --parse_think "<|message|>" \
 
 # python -m eval.eval \
@@ -88,10 +81,9 @@ python -m eval.eval \
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks AIME25 \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 16384 \
 #     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -99,10 +91,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks HRM8K \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 16384 \
     --parse_think "<|message|>" \
 
 # python -m eval.eval \
@@ -110,10 +101,9 @@ python -m eval.eval \
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks IFEval \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 16384 \
 #     --parse_think "<|message|>" \
 
 python -m eval.eval \
@@ -121,10 +111,9 @@ python -m eval.eval \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks IFBench \
     --batch_size auto \
-    --max_tokens 32768 \
+    --max_tokens 131072 \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
-    --thinking_budget 24576 \
     --parse_think "<|message|>" \
 
 # python -m eval.eval \
@@ -132,8 +121,7 @@ python -m eval.eval \
 #     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
 #     --tasks AALCR \
 #     --batch_size auto \
-#     --max_tokens 32768 \
+#     --max_tokens 131072 \
 #     --apply_chat_template \
 #     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 16384 \
 #     --parse_think "<|message|>" \
