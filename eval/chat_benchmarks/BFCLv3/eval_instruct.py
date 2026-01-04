@@ -13,9 +13,51 @@ from lm_eval.api.model import LM
 
 from eval.task import BaseBenchmark
 
+from .multi_turn_utils import execute_multi_turn_func_call, is_empty_execute_response
 from .type_mappings import JAVA_TYPE_CONVERSION, JS_TYPE_CONVERSION
 from .java_type_converter import java_type_converter
 from .js_type_converter import js_type_converter
+
+PROMPT = """You are a helpful assistant and an expert in function composition. You can answer general questions using your internal knowledge OR invoke functions when necessary. Follow these strict guidelines:
+
+1. FUNCTION CALLS:
+- ONLY use functions that are EXPLICITLY listed in the function list below
+- If NO functions are listed (empty function list []), respond ONLY with internal knowledge or "I don't have access to [Unavailable service] information"
+- If a function is not in the list, respond ONLY with internal knowledge or "I don't have access to [Unavailable service] information"
+- If ALL required parameters are present AND the query EXACTLY matches a listed function's purpose: output ONLY the function call(s)
+- Use exact format: [func_name1(param1=value1, param2=value2), func_name2(...)]
+Examples:
+CORRECT: [get_weather(location="Vancouver"), calculate_route(start="Boston", end="New York")] <- Only if get_weather and calculate_route are in function list
+INCORRECT: get_weather(location="New York")
+INCORRECT: Let me check the weather: [get_weather(location="New York")]
+INCORRECT: [get_events(location="Singapore")] <- If function not in list
+
+2. RESPONSE RULES:
+- For pure function requests matching a listed function: ONLY output the function call(s)
+- For knowledge questions: ONLY output text
+- For missing parameters: ONLY request the specific missing parameters
+- For unavailable services (not in function list): output ONLY with internal knowledge or "I don't have access to [Unavailable service] information". Do NOT execute a function call.
+- If the query asks for information beyond what a listed function provides: output ONLY with internal knowledge about your limitations
+- NEVER combine text and function calls in the same response
+- NEVER suggest alternative functions when the requested service is unavailable
+- NEVER create or invent new functions not listed below
+
+3. STRICT BOUNDARIES:
+- ONLY use functions from the list below - no exceptions
+- NEVER use a function as an alternative to unavailable information
+- NEVER call functions not present in the function list
+- NEVER add explanatory text to function calls
+- NEVER respond with empty brackets
+- Use proper Python/JSON syntax for function calls
+- Check the function list carefully before responding
+
+4. TOOL RESPONSE HANDLING:
+- When receiving tool responses: provide concise, natural language responses
+- Don't repeat tool response verbatim
+- Don't add supplementary information
+
+Here is a list of functions in JSON format that you can invoke:
+"""
 
 PYTHON_TYPE_MAPPING = {
     "string": str,
@@ -50,14 +92,13 @@ class BFCLv3Benchmark(BaseBenchmark):
         system_instruction: Optional[str] = None,
         # FIXME
         thinking_budget: Optional[int] = None,
-        parse_think: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
-        self.dataset_name = "teddyyyy123/bfcl_v3"
+        self.dataset_name = "llamastack/bfcl_v3"
         self.debug = debug
         self.seed = seed
         self.max_new_tokens = max_tokens
-        self.n_repeat = 1
         # FIXME
         self.thinking_budget = thinking_budget
         self.parse_think = parse_think
@@ -74,23 +115,48 @@ class BFCLv3Benchmark(BaseBenchmark):
 
         tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        all_outputs = []
+        for example in examples:
+            example["model_outputs"] = []
 
-        for i in range(self.n_repeat):
-            all_instances = []
-            seed = [s + i for s in self.seed]
-
+        max_turns = 8 # BFCLv3's max turn is 8.
+        for mt in range(1, max_turns + 1):
+            all_instances, call_indices = [], []
             for idx, example in enumerate(examples):
-                messages = [
-                    {"role": "system", "content": example["question"][0][0]["content"].strip()},
-                    {"role": "user", "content": example["question"][0][1]["content"].strip()},
-                ]
+                turns = json.loads(example["turns"])
+                functions = json.loads(example["functions"])
 
-                tools = json.loads(example["function"])
+                if mt > len(turns):
+                    continue
+
+                messages = []
+                for turn in range(1, mt + 1):
+                    if turn == 1:
+                        messages.append({"role": "user", "content": turns[0][1]["content"].strip()})
+
+                    else:
+                        messages.append({"role": "assistant", "content": examples[idx]["model_outputs"][turn - 2]})
+
+                        try:
+                            messages.append({"role": "user", "content": turns[turn - 1][0]["content"].strip()})
+
+                        except: # 'multi_turn_miss_func' task
+                            user_content = []
+                            missed_functions = json.loads(example["missed_functions"])
+                            for k, v in missed_functions.items():
+                                for v_ in v:
+                                    for missed_function in v_:
+                                        function_name = missed_function["name"]
+                                        functions.append(missed_function)
+                                        user_content.append(f"Supply function \"{function_name}\".")
+                                    
+                            messages.append({"role": "user", "content": "\n".join(user_content)})
+                        
+                system_content = PROMPT + str(functions)
+                messages.insert(0, {"role": "system", "content": system_content})
 
                 templated_messages = tokenizer.apply_chat_template(
                     messages,
-                    tools=tools,
+                    tools=functions,
                     tokenize=False,
                     add_generation_prompt=True,
                 )
@@ -104,26 +170,30 @@ class BFCLv3Benchmark(BaseBenchmark):
                             "do_sample": False,
                             "temperature": 0.0,
                             "max_new_tokens": self.max_new_tokens,
-                            "seed": seed,
+                            "seed": self.seed,
                         },
                     ),
                     idx,
                 )
-                instance.repeat_idx = i
                 all_instances.append(instance)
+                call_indices.append(idx)
+
+            if not all_instances:
+                continue
 
             # Generate model responses
-            self.logger.info("Generating responses for BFCLv3...")
+            self.logger.info(f"Generating responses of {mt} turns for BFCLv3...")
             outputs = self.compute(model=model, inputs=all_instances, thinking_budget=None, parse_think=False) # FIXME: Agent benchmarking requires no thinking.
-            all_outputs.append(outputs)
+
+            for ci, output in zip(call_indices, outputs):
+                examples[ci]["model_outputs"].append(output)
 
         # Return None early for non-primary ranks
         if model.rank != 0:
             return None
 
-        for example, outputs in zip(examples, zip(*all_outputs)):
-            example["model_outputs"] = list(outputs)
-            example["model_answers"] = [self.parse_tool_calls(o) for o in outputs]
+        for example in examples:
+            example["model_answers"] = [self.parse_tool_calls(emo) for emo in example["model_outputs"]]
 
         return {"examples": examples}
 
@@ -134,59 +204,73 @@ class BFCLv3Benchmark(BaseBenchmark):
         examples = results["examples"]
         num_questions = len(examples)
 
-        # Calculate accuracy for each repetition
-        all_results = []
-        for i in range(self.n_repeat):
-            solved = 0
-            for j, example in enumerate(examples):
-                func_description = json.loads(example["function"])
-                model_output = example["model_answers"][i]
-                possible_answer = json.loads(example["ground_truth"])
-                language = example["language"]
+        solved = 0
+        for example in examples:
+            test_category = example["test_category"]
+            func_description = json.loads(example["functions"])
+            model_output = example["model_answers"]
+            possible_answer = json.loads(example["ground_truth"])
+            language = example["language"]
 
-                if "parallel" in example["id"]:
-                    examples[j]["eval_checker"] = self.parallel_function_checker_no_order(func_description, model_output, possible_answer, language)
-                
-                elif "multiple" in example["id"]:
-                    examples[j]["eval_checker"] = self.multiple_function_checker(func_description, model_output, possible_answer, language)
-                
+            if "relevance" in test_category or "irrelevance" in test_category:
+                contain_func_call = False
+                decode_error = None
+
+                try:
+                    contain_func_call = True
+                    if self.is_empty_output(model_output):
+                        contain_func_call = False
+                except Exception as e:
+                    contain_func_call = False
+                    decode_error = str(e)
+
+                if "irrelevance" in test_category:
+                    success = not contain_func_call
                 else:
-                    if len(example["model_answers"][i]) != 1:
-                        examples[j]["eval_checker"] = {
-                            "valid": False,
-                            "error": ["Wrong number of functions."],
-                            "error_type": "simple_function_checker:wrong_count"
-                        }
+                    success = contain_func_call
 
+                if not success:
+                    temp = {"valid": success}
+                    if "irrelevance" in test_category:
+                        temp["error"] = ["Valid syntax. Successfully decode AST when it should not."]
+                        temp["error_type"] = "irrelevance_error:decoder_success"
                     else:
-                        examples[j]["eval_checker"] = self.simple_function_checker(func_description[0], model_output[0], possible_answer[0], language)
+                        temp["error"] = [f"Invalid syntax. Failed to decode AST when it should have. {decode_error}"]
+                        temp["error_type"] = "relevance_error:decoder_failed"
+                    example["eval_checker"] = temp
+                else:
+                    example["eval_checker"] = {"valid": True}
 
-                if examples[j]["eval_checker"]["valid"]:
-                    solved += 1
+            else:
+                if "multi_turn" in test_category:
+                    example["eval_checker"] = self.multi_turn_checker(model_output, possible_answer, example)
 
-            all_results.append(
-                {
-                    "repetition": i + 1,
-                    "num_total": num_questions,
-                    "num_solved": solved,
-                    "accuracy": solved / num_questions,
-                }
-            )
+                else:
+                    if "parallel" in example["id"]:
+                        example["eval_checker"] = self.parallel_function_checker_no_order(func_description, model_output[0], possible_answer, language)
+                    
+                    elif "multiple" in example["id"]:
+                        example["eval_checker"] = self.multiple_function_checker(func_description, model_output[0], possible_answer, language)
+                    
+                    else:
+                        if len(example["model_answers"]) != 1:
+                            example["eval_checker"] = {
+                                "valid": False,
+                                "error": ["Wrong number of functions."],
+                                "error_type": "simple_function_checker:wrong_count"
+                            }
 
-        # Calculate overall statistics
-        solved_avg = np.mean([result["num_solved"] for result in all_results])
-        accuracy_avg = np.mean([result["accuracy"] for result in all_results])
-        accuracy_std = np.std([result["accuracy"] for result in all_results])
-        accuracy_std_err = np.std([result["accuracy"] for result in all_results]) / np.sqrt(self.n_repeat)
+                        else:
+                            example["eval_checker"] = self.simple_function_checker(func_description[0], model_output[0][0], possible_answer[0], language)
+                            
+            if example["eval_checker"]["valid"]:
+                solved += 1
 
         results.update(
             {
                 "num_total": num_questions,
-                "solved_avg": solved_avg,
-                "run_stats": all_results,
-                "accuracy_avg": accuracy_avg,
-                "accuracy_std_err": accuracy_std_err,
-                "num_repeat": self.n_repeat,
+                "num_solved": solved,
+                "accuracy": solved / num_questions,
             }
         )
 
@@ -218,7 +302,203 @@ class BFCLv3Benchmark(BaseBenchmark):
             except:
                 continue
         
-        return tool_calls
+        if tool_calls:
+            return tool_calls
+        else:
+            return [{}]
+
+    def is_function_calling_format_output(self, decoded_output):
+        if type(decoded_output) != list:
+            return False
+        for item in decoded_output:
+            if type(item) != dict:
+                return False
+            if len(item) != 1:
+                return False
+            if type(list(item.values())[0]) != dict:
+                return False
+        return True
+
+    def is_empty_output(self, decoded_output):
+        if not self.is_function_calling_format_output(decoded_output):
+            return True
+        if len(decoded_output) == 0:
+            return True
+        if len(decoded_output) == 1 and len(decoded_output[0]) == 0:
+            return True
+        return False
+
+    def _compare_instances(self, model_obect, ground_truth_object):
+        assert type(model_obect) == type(
+            ground_truth_object
+        ), "Objects are not of the same type."
+        differences = {}
+        valid = True
+        for attr_name in vars(ground_truth_object):
+            # We don't check for private attributes
+            if attr_name.startswith("_"):
+                continue
+            model_attr = getattr(model_obect, attr_name)
+            ground_truth_attr = getattr(ground_truth_object, attr_name)
+
+            if model_attr != ground_truth_attr:
+                valid = False
+                differences[attr_name] = {"model": model_attr, "ground_truth": ground_truth_attr}
+
+        return valid, differences
+
+    def state_checker(self, model_instances, ground_truth_instances):
+        for class_name, ground_truth_instance in ground_truth_instances.items():
+            model_instance = model_instances[class_name]
+            valid, differences = self._compare_instances(model_instance, ground_truth_instance)
+
+            if not valid:
+                model_instance_attributes = {
+                    key: value
+                    for key, value in vars(model_instance).items()
+                    if not key.startswith("_")
+                }
+                ground_truth_instance_attributes = {
+                    key: value
+                    for key, value in vars(ground_truth_instance).items()
+                    if not key.startswith("_")
+                }
+
+                return {
+                    "valid": False,
+                    "error_message": f"Model instance for {class_name} does not match the state with ground truth instance.",
+                    "error_type": "multi_turn:instance_state_mismatch",
+                    "details": {
+                        "differences": differences,
+                        "model_instance_state": model_instance_attributes,
+                        "ground_truth_instance_state": ground_truth_instance_attributes,
+                    },
+                }
+
+        return {"valid": True}
+
+    def _is_subsequence_unordered(self, list1, list2):
+        list2_copy = list2[:]
+        
+        missing_elements = []
+        for item in list1:
+            try:
+                list2_copy.remove(item)
+            except ValueError:
+                missing_elements.append(item)
+        
+        is_subsequence = len(missing_elements) == 0
+        return is_subsequence, missing_elements
+
+    def response_checker(self, model_response_list, ground_truth_response_list, turn_index):
+        is_subsequence, missing_items = self._is_subsequence_unordered(
+            ground_truth_response_list, model_response_list
+        )
+        if not is_subsequence:
+            return {
+                "valid": False,
+                "error_message": f"Model response execution results so far does not contain all the ground truth response execution results for turn {turn_index}.",
+                "error_type": "multi_turn:execution_response_mismatch",
+                "details": {
+                    "missing_items": missing_items,
+                    "model_response (including all previous turns)": model_response_list,
+                    "ground_truth_response (only the current turn)": ground_truth_response_list,
+                },
+            }
+
+        return {"valid": True}
+
+    def multi_turn_checker(self, multi_turn_model_result_list_decoded, multi_turn_ground_truth_list, test_entry):
+        initial_config = json.loads(test_entry["initial_config"])
+        involved_classes = test_entry["involved_classes"]
+        test_entry_id = test_entry["id"]
+        test_category = test_entry["test_category"]
+        execution_results = []
+        all_turn_model_execution_results = []
+
+        for turn_index, single_turn_ground_truth_list in enumerate(multi_turn_ground_truth_list):
+            single_turn_model_response_list = multi_turn_model_result_list_decoded[turn_index]
+
+            single_turn_model_execution_results = []
+            single_turn_model_execution_results_uncombined = []
+            single_turn_ground_truth_execution_results = []
+            model_instances = {}
+            single_step_model_execution_results = []
+        
+            for single_step_model_response in single_turn_model_response_list:
+                single_step_model_execution_results, model_instances = (
+                    execute_multi_turn_func_call(
+                        func_call_list=single_step_model_response,
+                        initial_config=initial_config,
+                        involved_classes=involved_classes,
+                        model_name="",
+                        test_entry_id=test_entry_id,
+                        long_context=(
+                            "long_context" in test_category or "composite" in test_category
+                        ),
+                        is_evaL_run=True,
+                    )
+                )
+                single_turn_model_execution_results.extend(single_step_model_execution_results)
+                single_turn_model_execution_results_uncombined.append(single_step_model_execution_results)
+
+            single_turn_ground_truth_execution_results, ground_truth_instances = (
+                execute_multi_turn_func_call(
+                    func_call_list=single_turn_ground_truth_list,
+                    initial_config=initial_config,
+                    involved_classes=involved_classes,
+                    model_name="ground_truth",
+                    test_entry_id=test_entry_id,
+                    long_context=(
+                        "long_context" in test_category or "composite" in test_category
+                    ),
+                    is_evaL_run=True,
+                )
+            )
+
+            all_turn_model_execution_results.extend(single_turn_model_execution_results)
+            execution_results.append(
+                {
+                    "model": single_turn_model_execution_results_uncombined,
+                    "ground_truth": single_turn_ground_truth_execution_results,
+                }
+            )
+
+            if len(single_turn_ground_truth_list) > 0:
+                if not single_turn_model_response_list or is_empty_execute_response(
+                    single_turn_model_response_list
+                ):
+                    return {
+                        "valid": False,
+                        "error_message": f"Model response list is empty for turn {turn_index}",
+                        "error_type": "multi_turn:empty_turn_model_response",
+                        "details": {
+                            "execution_result": execution_results,
+                        },
+                    }
+
+            if not single_turn_ground_truth_list:
+                continue
+
+            assert len(model_instances) == len(
+                ground_truth_instances
+            ), f"Model instances and ground truth instances do not match in length for turn {turn_index}. Model instances: {len(model_instances)}, Ground truth instances: {len(ground_truth_instances)}"
+            assert set(model_instances.keys()) == set(ground_truth_instances.keys())
+
+            state_check_result = self.state_checker(model_instances, ground_truth_instances)
+            if not state_check_result["valid"]:
+                state_check_result["execution_result"] = execution_results
+                return state_check_result
+
+            response_check_result = self.response_checker(
+                all_turn_model_execution_results,
+                single_turn_ground_truth_execution_results,
+                turn_index,
+            )
+            if not response_check_result["valid"]:
+                return response_check_result
+
+        return {"valid": True}
 
     def find_description(self, func_descriptions, name):
         if type(func_descriptions) == list:
