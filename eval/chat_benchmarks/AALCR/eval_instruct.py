@@ -119,7 +119,7 @@ class AALCRBenchmark(BaseBenchmark):
             solved = 0
             for j, (unique_id, predictions) in enumerate(eval_results):
                 if unique_id is not None:
-                    solved += predictions["judge_response"]["response"] == "CORRECT"
+                    solved += ("CORRECT" in predictions["judge_response"]["response"].upper() and "INCORRECT" not in predictions["judge_response"]["response"].upper())
                     examples[j]["judge_responses"].append(predictions["judge_response"])
 
             all_results.append(
