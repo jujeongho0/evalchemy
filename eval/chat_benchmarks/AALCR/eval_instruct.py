@@ -114,7 +114,7 @@ class AALCRBenchmark(BaseBenchmark):
         for i in range(self.n_repeat):
             predictions = {example["question_id"]: {"response": example["model_outputs"][i]} for example in examples}
 
-            eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=2, judge=judge))
+            eval_results = asyncio.run(judge_all_responses(questions, predictions, num_workers=32, judge=judge))
 
             solved = 0
             for j, (unique_id, predictions) in enumerate(eval_results):
