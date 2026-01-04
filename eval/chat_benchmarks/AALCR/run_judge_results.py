@@ -33,7 +33,7 @@ async def extract_answer(question, correct_answer, response, judge):
         content = response.choices[0].message.content
         return {
             "correct_answer": correct_answer,
-            "response": content.response,
+            "response": content,
         }
     except Exception as e:  # very, very rare
         print("Error:", e)
