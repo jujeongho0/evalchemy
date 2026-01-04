@@ -28,16 +28,16 @@ python -m eval.eval \
     --thinking_budget 16384 \
     --parse_think "</think>" \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks HLE \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 24576 \
-#     --parse_think "</think>" \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks HLE \
+    --batch_size auto \
+    --max_tokens 32768 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
+    --thinking_budget 24576 \
+    --parse_think "</think>" \
 
 python -m eval.eval \
     --model vllm \
@@ -127,16 +127,16 @@ python -m eval.eval \
     --thinking_budget 24576 \
     --parse_think "</think>" \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks AALCR \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --thinking_budget 16384 \
-#     --parse_think "</think>" \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks AALCR \
+    --batch_size auto \
+    --max_tokens 8192 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
+    --thinking_budget 4096 \
+    --parse_think "</think>" \
 
 python -m eval.eval \
     --model vllm \
