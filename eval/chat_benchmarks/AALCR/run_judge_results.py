@@ -1,9 +1,7 @@
 import asyncio
 import copy
-from typing import Literal
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel
 from tqdm.asyncio import tqdm_asyncio
 
 client = AsyncOpenAI(
@@ -24,20 +22,15 @@ CANDIDATE ANSWER TO ASSESS: {candidate_answer}
 Reply only with CORRECT or INCORRECT."""
 
 
-class ExtractedAnswer(BaseModel):
-    response: Literal["CORRECT", "INCORRECT"]
-
-
 async def extract_answer(question, correct_answer, response, judge):
     prompt = JUDGE_PROMPT.format(question=question, official_answer=correct_answer, candidate_answer=response)
     try:
-        response = await client.beta.chat.completions.parse(
+        response = await client.chat.completions.create(
             model=judge,
             max_completion_tokens=4096,  # overkill for judge
             messages=[{"role": "user", "content": prompt}],
-            response_format=ExtractedAnswer,
         )
-        content = response.choices[0].message.parsed
+        content = response.choices[0].message.content
         return {
             "correct_answer": correct_answer,
             "response": content.response,
