@@ -10,7 +10,7 @@ export HF_HUB_CACHE="/path/to/.cache/huggingface/hub"
 MODEL_PATH="NC-AI-consortium-VAETKI/VAETKI"
 OUTPUT_PATH="/path/to/output_path"
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks GPQADiamond \
@@ -22,7 +22,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks MMLUPro \
@@ -34,7 +34,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks HLE \
@@ -46,7 +46,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks KMMLUPro \
@@ -58,7 +58,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks CLIcK \
@@ -70,7 +70,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks KoBALT \
@@ -82,7 +82,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks LiveCodeBenchv6_official \
@@ -94,7 +94,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks AIME25 \
@@ -106,7 +106,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks HRM8K \
@@ -118,7 +118,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks IFEval \
@@ -130,7 +130,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks IFBench \
@@ -142,7 +142,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks AALCR \
@@ -154,7 +154,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks BFCLv3 \
@@ -164,7 +164,7 @@ python -m eval.eval \
     --output_path ${OUTPUT_PATH} \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks MATH500 \
@@ -176,7 +176,7 @@ python -m eval.eval \
     --parse_think "</think>" \
     --verbosity INFO \
 
-python -m eval.eval \
+python3 -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
     --tasks BBH \
