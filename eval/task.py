@@ -92,7 +92,7 @@ class BaseBenchmark(ABC):
             prompts = inputs
         
         # FIXME: Thinking Budget
-        if isinstance(thinking_kwargs["thinking_budget"], int):         
+        if thinking_kwargs["thinking_budget"]:         
             if isinstance(model, lm_eval_models.huggingface.HFLM):
                 # TODO
                 raise NotImplementedError
@@ -148,7 +148,7 @@ class BaseBenchmark(ABC):
             results = model.generate_until(prompts)
 
         # FIXME: Parsing thinking content
-        if isinstance(thinking_kwargs["parse_think"], str):
+        if thinking_kwargs["parse_think"]:
             results = [r.split(thinking_kwargs["parse_think"])[-1].lstrip() for r in results]
 
         # FIXME: VAETKI needs post-processing of results
