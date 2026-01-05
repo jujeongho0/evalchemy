@@ -92,7 +92,7 @@ class BaseBenchmark(ABC):
             prompts = inputs
         
         # FIXME: Thinking Budget
-        if isinstance(thinking_kwargs["thinking_budget"], int) and not thinking_kwargs["parse_think"]:         
+        if isinstance(thinking_kwargs["thinking_budget"], int):         
             if isinstance(model, lm_eval_models.huggingface.HFLM):
                 # TODO
                 raise NotImplementedError
@@ -117,12 +117,12 @@ class BaseBenchmark(ABC):
                     else:
                         results.append(None)
 
-                        if thinking_kwargs["parse_think"] in fr:
+                        if "</think>" in fr:
                             temp_results.append(fr)
                             instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
 
                         else:
-                            early_stopping_text = f"\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n{thinking_kwargs['parse_think']}\n\n"
+                            early_stopping_text = f"\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n"
                             temp_results.append(fr + early_stopping_text)
                             instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
                         
@@ -148,10 +148,10 @@ class BaseBenchmark(ABC):
             results = model.generate_until(prompts)
 
         # FIXME: Parsing thinking content
-        if thinking_kwargs["parse_think"]:
+        if isinstance(thinking_kwargs["parse_think"], str):
             results = [r.split(thinking_kwargs["parse_think"])[-1].lstrip() for r in results]
 
-        # FIXME: WBL models need post-processing of results
+        # FIXME: VAETKI needs post-processing of results
         def clean_blocks(text):            
             text = text.replace("▁", " ")
             return text
