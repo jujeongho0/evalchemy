@@ -10,16 +10,6 @@ export HF_HUB_CACHE="/path/to/.cache/huggingface/hub"
 MODEL_PATH="openai/gpt-oss-120b"
 OUTPUT_PATH="/path/to/output_path"
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks GPQADiamond \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
-
 python -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
@@ -29,16 +19,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks HLE \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -49,6 +30,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -59,6 +41,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -69,26 +52,18 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
+    --verbosity INFO \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks LiveCodeBenchv6_official \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks AIME25 \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks LiveCodeBenchv6_official \
+    --batch_size auto \
+    --max_tokens 131072 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
+    --parse_think "<|message|>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -99,17 +74,8 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks IFEval \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
-
+    --verbosity INFO \
+    
 python -m eval.eval \
     --model vllm \
     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
@@ -119,13 +85,15 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<|message|>" \
+    --verbosity INFO \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks AALCR \
-#     --batch_size auto \
-#     --max_tokens 131072 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<|message|>" \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks AALCR \
+    --batch_size auto \
+    --max_tokens 131072 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
+    --parse_think "<|message|>" \
+    --verbosity INFO \
