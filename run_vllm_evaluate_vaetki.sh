@@ -1,6 +1,10 @@
 #!/bin/bash
 
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
+export HF_ALLOW_CODE_EVAL=1
+export HUGGING_FACE_HUB_TOKEN="your_hf_token"
+export OPENROUTER_API_KEY="your_openrouter_api_key"
+export OPENAI_API_KEY="your_openai_api_key"
 export HF_HUB_CACHE="/path/to/.cache/huggingface/hub"
 
 MODEL_PATH="NC-AI-consortium-VAETKI/VAETKI"
