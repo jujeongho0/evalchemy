@@ -19,6 +19,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -29,6 +30,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -39,6 +41,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -49,6 +52,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -59,6 +63,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -69,26 +74,18 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
+    --verbosity INFO \
 
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks LiveCodeBenchv6_official \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<answer>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks AIME25 \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<answer>" \
+python -m eval.eval \
+    --model vllm \
+    --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
+    --tasks LiveCodeBenchv6_official \
+    --batch_size auto \
+    --max_tokens 32768 \
+    --apply_chat_template \
+    --output_path ${OUTPUT_PATH} \
+    --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -99,16 +96,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks IFEval \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<answer>" \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -119,25 +107,7 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks AALCR \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<answer>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks BFCLv3 \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
+    --verbosity INFO \
 
 python -m eval.eval \
     --model vllm \
@@ -148,13 +118,4 @@ python -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --parse_think "<answer>" \
-
-# python -m eval.eval \
-#     --model vllm \
-#     --model_args pretrained=${MODEL_PATH},tensor_parallel_size=8,trust_remote_code=True \
-#     --tasks BBH \
-#     --batch_size auto \
-#     --max_tokens 32768 \
-#     --apply_chat_template \
-#     --output_path ${OUTPUT_PATH} \
-#     --parse_think "<answer>" \
+    --verbosity INFO \
