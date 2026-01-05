@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from tqdm.asyncio import tqdm_asyncio
 
 client = AsyncOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),, # TODO: You need to register your OpenAI API KEY.
+    api_key=os.getenv("OPENAI_API_KEY"), # TODO: You need to register your OpenAI API KEY.
     timeout=300.0,
     max_retries=1
 )
