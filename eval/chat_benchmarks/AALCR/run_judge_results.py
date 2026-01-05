@@ -1,3 +1,4 @@
+import os
 import asyncio
 import copy
 
@@ -5,7 +6,7 @@ from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
 client = AsyncOpenAI(
-    api_key="", # TODO: You need to enter your OpenRouter API KEY.
+    api_key=os.getenv("OPENROUTER_API_KEY"), # TODO: You need to register your OpenRouter API KEY.
     base_url="https://openrouter.ai/api/v1",
     timeout=300.0,
     max_retries=1
