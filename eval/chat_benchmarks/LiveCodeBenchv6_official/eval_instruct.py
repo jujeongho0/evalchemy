@@ -37,6 +37,11 @@ def calc_stats(values):
     return mean, stderr
 
 
+def filter_by_contest_date(example):
+    target_months = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05"]
+    return example['contest_date'][:7] in target_months
+
+
 class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
     """
     LiveCodeBench v6 Benchmark for evaluating the math reasoning of LLMs.
@@ -355,7 +360,8 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
         """Load LiveCodeBenchV6 questions from source."""
         self.logger.info("Loading LiveCodeBenchV6 questions from source and converting to dataset...")
         cpu_count = 32 # FIXME
-        ds = load_dataset("livecodebench/code_generation_lite", version_tag="v6", cache_dir="./", trust_remote_code=True)['test']
+        lcb_codegen = load_dataset("livecodebench/code_generation_lite", version_tag="release_v6", cache_dir="./", trust_remote_code=True)['test']
+        ds = lcb_codegen.filter(filter_by_contest_date)
         processed_shards = []
         num_shards = 4
         for i in range(num_shards):
