@@ -24,8 +24,7 @@ if not HF_HUB_CACHE:
 
 
 def has_code(response):
-    # FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#code-extraction-regex
-    pattern = r"(?<=```python\n)((?:\n|.)+?)(?=\n```)"
+    pattern = r"```(?:[a-zA-Z]*)\n(.*?)```"
     # Use re.DOTALL to match multiline content inside backticks
     matches = re.findall(pattern, response, re.DOTALL)
     return matches
