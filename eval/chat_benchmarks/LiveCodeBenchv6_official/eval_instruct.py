@@ -38,7 +38,7 @@ def calc_stats(values):
 
 
 def filter_by_contest_date(example):
-    target_months = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05"]
+    target_months = ["2025-02", "2025-03", "2025-04", "2025-05"]
     return example['contest_date'][:7] in target_months
 
 
