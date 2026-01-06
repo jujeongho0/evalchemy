@@ -9,12 +9,7 @@ from lm_eval.api.model import LM
 
 from eval.task import BaseBenchmark
 
-# FIXME: Adopted from https://artificialanalysis.ai/methodology/intelligence-benchmarking#mathematical-questions
-PROMPT = """Solve the following math problem step by step. Put your answer inside \\boxed{{}}.
-
-{problem}
-
-Remember to put your answer inside \\boxed{{}}."""
+PROMPT = """Problem: {problem}\nMark your solution with \\boxed\nAnswer:"""
 
 
 class AIME25Benchmark(BaseBenchmark):
