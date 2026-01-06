@@ -239,6 +239,8 @@ class BBHBenchmark(BaseBenchmark):
                         {
                             "do_sample": True,
                             "temperature": 0.7,
+                            "top_p": 0.95,
+                            "top_k": 20,
                             "max_new_tokens": self.max_new_tokens,
                             "seed": seed,
                         },
