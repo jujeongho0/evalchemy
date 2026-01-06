@@ -354,7 +354,7 @@ class LiveCodeBenchV6OfficialBenchmark(BaseBenchmark):
     def load_questions(self) -> Dataset:
         """Load LiveCodeBenchV6 questions from source."""
         self.logger.info("Loading LiveCodeBenchV6 questions from source and converting to dataset...")
-        cpu_count = os.cpu_count()
+        cpu_count = 32 # FIXME
         ds = load_dataset("livecodebench/code_generation_lite", version_tag="v6", cache_dir="./", trust_remote_code=True)['test']
         processed_shards = []
         num_shards = 4
