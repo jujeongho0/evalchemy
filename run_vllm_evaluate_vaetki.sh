@@ -19,7 +19,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 24576 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -31,7 +31,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -43,7 +43,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 24576 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -55,7 +55,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -67,7 +67,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -79,7 +79,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -91,7 +91,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -103,7 +103,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -115,7 +115,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -127,7 +127,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -139,7 +139,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 24576 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -151,7 +151,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 4096 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -173,7 +173,7 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
 
 python3 -m eval.eval \
@@ -185,5 +185,5 @@ python3 -m eval.eval \
     --apply_chat_template \
     --output_path ${OUTPUT_PATH} \
     --thinking_budget 16384 \
-    --parse_think "</think>" \
+    --parse_think \
     --verbosity INFO \
