@@ -98,47 +98,47 @@ class BaseBenchmark(ABC):
                 raise NotImplementedError
 
             elif isinstance(model, lm_eval_models.vllm_causallms.VLLM):
-                for prompt in prompts:
-                    prompt.arguments[1]["include_stop_str_in_output"] = True
-
                 max_tokens = prompts[0].arguments[1]["max_gen_toks"]
                 assert max_tokens > thinking_kwargs["thinking_budget"]
 
-                for instance in prompts:
-                   instance.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
+                for prompt in prompts:
+                    prompt.arguments[1]["include_stop_str_in_output"] = True
+                    prompt.arguments[1]["skip_special_tokens"] = False
+                    prompt.arguments[1]["max_gen_toks"] = thinking_kwargs["thinking_budget"]
                 
                 first_results = model.generate_until(prompts)
 
-                results, temp_results, second_prompts = [], [], []
-                for instance, fr in zip(prompts, first_results):
-                    if "<|END|>" in fr:
-                        results.append(fr.replace("<|END|>", ""))
+                end_token = "<|END|>"
+                think_end_token = "</think>"
+                early_stopping_text = f"\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n{think_end_token}\n"
+                results, thinking_parts, second_prompts = [], [], []
+                for prompt, first_result in zip(prompts, first_results):
+                    if end_token in first_result:
+                        results.append(first_result.replace(end_token, ""))
 
                     else:
                         results.append(None)
 
-                        if "</think>" in fr:
-                            temp_results.append(fr)
-                            instance.arguments = (instance.arguments[0] + fr, instance.arguments[1])
+                        if think_end_token in first_result:
+                            thinking_parts.append(first_result)
+                            second_prompt = prompt.arguments[0] + first_result
 
                         else:
-                            early_stopping_text = f"\n\nConsidering the limited time by the user, I have to give the solution based on the thinking directly now.\n</think>\n"
-                            temp_results.append(fr + early_stopping_text)
-                            instance.arguments = (instance.arguments[0] + fr + early_stopping_text, instance.arguments[1])
-                        
-                        instance.arguments[1]["max_gen_toks"] = max_tokens - thinking_kwargs["thinking_budget"]
-                        second_prompts.append(instance)
+                            thinking_parts.append(first_result + early_stopping_text)
+                            second_prompt = prompt.arguments[0] + first_result + early_stopping_text
 
-                del prompts
-                del first_results
+                        second_prompt_len = len(model.tok_encode(second_prompt))
+                        prompt.arguments[1]["max_gen_toks"] = max_tokens - second_prompt_len
+                        prompt.arguments = (second_prompt, prompt.arguments[1])
+                        second_prompts.append(prompt)
 
                 if second_prompts:
                     second_results = model.generate_until(second_prompts)
 
                     idx = 0
-                    for i, r in enumerate(results):
-                        if r is None:
-                            results[i] = temp_results[idx] + second_results[idx].replace("<|END|>", "")
+                    for i, result in enumerate(results):
+                        if result is None:
+                            results[i] = thinking_parts[idx] + second_results[idx].replace(end_token, "")
                             idx += 1
 
             else:
@@ -149,14 +149,15 @@ class BaseBenchmark(ABC):
 
         # FIXME: Parsing thinking content
         if thinking_kwargs["parse_think"]:
-            results = [r.split(thinking_kwargs["parse_think"])[-1].lstrip() for r in results]
+            think_end_token = "</think>"
+            results = [result.split(think_end_token)[-1].strip() for result in results]
 
         # FIXME: VAETKI needs post-processing of results
-        def clean_blocks(text):            
-            text = text.replace("▁", " ")
+        def clean_blocks(text, separators=("\n", "\t")):
+            for sep in separators:
+                text = sep.join(s[1:] if s.startswith(" ") else s for s in text.split(sep))
             return text
-        
-        results = [clean_blocks(r) for r in results]
+        results = [clean_blocks(result) for result in results]
 
         if model.world_size > 1:
             all_results = [None for _ in range(model.world_size)]
