@@ -29,7 +29,7 @@ class AALCRBenchmark(BaseBenchmark):
         system_instruction: Optional[str] = None,
         # FIXME
         thinking_budget: Optional[int] = None,
-        parse_think: Optional[str] = None,
+        parse_think: Optional[bool] = False,
     ):
         super().__init__(logger=logger, system_instruction=system_instruction)
         self.debug = debug
