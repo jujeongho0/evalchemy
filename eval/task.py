@@ -156,6 +156,7 @@ class BaseBenchmark(ABC):
         def clean_blocks(text, separators=("\n", "\t")):
             for sep in separators:
                 text = sep.join(s[1:] if s.startswith(" ") else s for s in text.split(sep))
+            text = text.replace("▁", " ")
             return text
         results = [clean_blocks(result) for result in results]
 
